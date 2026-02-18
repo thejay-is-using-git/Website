@@ -1,0 +1,11 @@
+﻿.resources-main ul {
+  padding-left: 18px;
+}
+
+.resources-main li {
+  margin-bottom: 4px;
+}
+
+.resources-main li:last-child {
+  margin-bottom: 0;
+}

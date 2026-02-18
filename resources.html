@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CTRL_J - Resources</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png?v=2">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/resources.css">
+</head>
+<body data-page="ressources">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand" aria-live="polite">
+        <img class="brand-pic" src="assets/images/CTRL_J.png" alt="Photo de profil CTRL_J">
+        <span class="brand-title" id="brand-title">CTRL_J/Resources</span><span class="cursor">|</span>
+      </div>
+
+      <nav class="menu" aria-label="Navigation principale">
+        <a id="nav-home" href="index.html">Accueil</a>
+        <a id="nav-res" href="resources.html" class="active">Ressources</a>
+        <a id="nav-credit" href="credit.html">Credit</a>
+      </nav>
+
+      <div class="topbar-right">
+        <div class="topbar-tools">
+          <div id="music-player-slot"></div>
+
+          <div class="tool-pop">
+            <button class="settings-btn" id="settings-btn" type="button" aria-expanded="false" aria-controls="settings-panel" aria-label="Parametres">⚙</button>
+            <div class="settings-panel" id="settings-panel" aria-hidden="true">
+              <div class="setting-row">
+                <label for="theme-select" id="theme-label">Theme</label>
+                <select id="theme-select">
+                  <option value="system" id="theme-system-option">Windows</option>
+                  <option value="dark" id="theme-dark-option">Dark</option>
+                  <option value="light" id="theme-light-option">Light</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <label for="lang-select" id="lang-label">Language</label>
+                <select id="lang-select">
+                  <option value="system" id="lang-system-option">Windows</option>
+                  <option value="fr" id="lang-fr-option">Francais</option>
+                  <option value="en" id="lang-en-option">English</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="dev-banner" aria-live="polite">
+    <p id="dev-banner-text">Ce site est encore en developpement 🚧 merci de votre comprehension</p>
+  </section>
+
+  <main class="page">
+    <section class="section-panel resources-main">
+      <h1 id="resources-title">Ressources</h1>
+      <div class="card">
+        <ul>
+          <li><a id="resources-link-g" href="https://github.com/thejay-is-using-git" target="_blank" rel="noopener noreferrer">Mon GitHub</a></li>
+          <li><a id="resources-link-d" href="#" target="_blank" rel="noopener noreferrer">Mon Discord</a></li>
+          <li><a id="resources-link-m" href="#" target="_blank" rel="noopener noreferrer">Mes publications</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <p>CTRL_J/Website</p>
+    </footer>
+  </main>
+
+  <script src="assets/js/translations.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
+  <script src="assets/Musics/playlist.js"></script>
+  <script src="assets/js/music-player-component.js"></script>
+  <script src="assets/js/site.js"></script>
+</body>
+</html>
+

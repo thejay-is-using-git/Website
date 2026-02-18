@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CTRL_J</title>
-  <link rel="icon" type="image/png" href="assets/images/favicon.png">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <title>CTRL_J - Home</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png?v=2">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/home.css">
 </head>
-<body>
+<body data-page="information">
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand" aria-live="polite">
@@ -16,61 +17,52 @@
       </div>
 
       <nav class="menu" aria-label="Navigation principale">
-        <a href="#information" class="active">Accueil</a>
-        <a href="#ressources">Ressources</a>
-        <a href="#credit">Credit</a>
+        <a id="nav-home" href="index.html" class="active">Accueil</a>
+        <a id="nav-res" href="resources.html">Ressources</a>
+        <a id="nav-credit" href="credit.html">Credit</a>
       </nav>
 
       <div class="topbar-right">
-        <button class="settings-btn" id="settings-btn" type="button" aria-expanded="false" aria-controls="settings-panel" aria-label="Parametres">⚙</button>
-        <div class="settings-panel" id="settings-panel" aria-hidden="true">
-          <div class="setting-row">
-            <label for="theme-select" id="theme-label">Theme</label>
-            <select id="theme-select">
-              <option value="system" id="theme-system-option">Windows</option>
-              <option value="dark" id="theme-dark-option">Dark</option>
-              <option value="light" id="theme-light-option">Light</option>
-            </select>
-          </div>
-          <div class="setting-row">
-            <label for="lang-select" id="lang-label">Language</label>
-            <select id="lang-select">
-              <option value="system" id="lang-system-option">Windows</option>
-              <option value="fr" id="lang-fr-option">Francais</option>
-              <option value="en" id="lang-en-option">English</option>
-            </select>
+        <div class="topbar-tools">
+          <div id="music-player-slot"></div>
+
+          <div class="tool-pop">
+            <button class="settings-btn" id="settings-btn" type="button" aria-expanded="false" aria-controls="settings-panel" aria-label="Parametres">⚙</button>
+            <div class="settings-panel" id="settings-panel" aria-hidden="true">
+              <div class="setting-row">
+                <label for="theme-select" id="theme-label">Theme</label>
+                <select id="theme-select">
+                  <option value="system" id="theme-system-option">Windows</option>
+                  <option value="dark" id="theme-dark-option">Dark</option>
+                  <option value="light" id="theme-light-option">Light</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <label for="lang-select" id="lang-label">Language</label>
+                <select id="lang-select">
+                  <option value="system" id="lang-system-option">Windows</option>
+                  <option value="fr" id="lang-fr-option">Francais</option>
+                  <option value="en" id="lang-en-option">English</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </header>
 
+  <section class="dev-banner" aria-live="polite">
+    <p id="dev-banner-text">Ce site est encore en developpement 🚧 merci de votre comprehension</p>
+  </section>
+
   <main class="page">
-    <section id="information">
-      <h1>Bienvenue sur le site de CTRL_J</h1>
-      <p class="subtitle">Modding, publications et mises a jour.</p>
+    <section class="section-panel home-main">
+      <h1 id="home-title">Bienvenue sur le site de CTRL_J</h1>
+      <p class="subtitle" id="home-subtitle">Modding, publications et mises a jour.</p>
       <div class="card">
-      <p>Salut, moi c'est CTRL_J. Je publie ici mes projets de modding et mes nouveaux contenus.</p>
-      <p>Tu peux retrouver mes releases, mes notes de version et mes liens de telechargement.</p>
-      </div>
-    </section>
-
-    <section id="ressources">
-      <h2>Ressources</h2>
-      <div class="card">
-      <ul>
-        <li><a href="https://github.com/thejay-is-using-git" target="_blank" rel="noopener noreferrer">Mon GitHub</a></li>
-        <li><a href="#" target="_blank" rel="noopener noreferrer">Mon Discord</a></li>
-        <li><a href="#" target="_blank" rel="noopener noreferrer">Mes publications</a></li>
-      </ul>
-      </div>
-    </section>
-
-    <section id="credit">
-      <h2>Credit</h2>
-      <div class="card">
-        <p>Site cree par CTRL_J.</p>
-        <p>Derniere mise a jour: 2026.</p>
+        <p id="home-p1">Salut, moi c'est CTRL_J. Je publie ici mes projets de modding et mes nouveaux contenus.</p>
+        <p id="home-p2">Tu peux retrouver mes releases, mes notes de version et mes liens de telechargement.</p>
       </div>
     </section>
 
@@ -80,139 +72,10 @@
   </main>
 
   <script src="assets/js/translations.js"></script>
-  <script>
-    const settingsBtn = document.getElementById("settings-btn");
-    const settingsPanel = document.getElementById("settings-panel");
-    const themeSelect = document.getElementById("theme-select");
-    const langSelect = document.getElementById("lang-select");
-    const root = document.documentElement;
-    const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    let closeTimer = null;
-
-    const translations = window.SITE_TRANSLATIONS || {};
-
-    function getSystemTheme() {
-      return systemThemeQuery.matches ? "dark" : "light";
-    }
-
-    function getSystemLanguage() {
-      const lang = (navigator.language || "fr").toLowerCase();
-      return lang.startsWith("en") ? "en" : "fr";
-    }
-
-    function applyTheme(themeChoice) {
-      const effectiveTheme = themeChoice === "system" ? getSystemTheme() : themeChoice;
-      root.setAttribute("data-theme", effectiveTheme);
-      localStorage.setItem("site-theme", themeChoice);
-    }
-
-    function applyLanguage(langChoice) {
-      const effectiveLang = langChoice === "system" ? getSystemLanguage() : langChoice;
-      const t = translations[effectiveLang] || translations.fr;
-      const menuLinks = document.querySelectorAll(".menu a");
-      const h1 = document.querySelector("#information h1");
-      const subtitle = document.querySelector("#information .subtitle");
-      const p = document.querySelectorAll("#information .card p");
-      const h2 = document.querySelectorAll("main h2");
-      const resLinks = document.querySelectorAll("#ressources a");
-      const creditP = document.querySelectorAll("#credit .card p");
-      const themeLabel = document.getElementById("theme-label");
-      const langLabel = document.getElementById("lang-label");
-      const themeSystemOption = document.getElementById("theme-system-option");
-      const themeDarkOption = document.getElementById("theme-dark-option");
-      const themeLightOption = document.getElementById("theme-light-option");
-      const langSystemOption = document.getElementById("lang-system-option");
-      const langFrOption = document.getElementById("lang-fr-option");
-      const langEnOption = document.getElementById("lang-en-option");
-
-      menuLinks[0].textContent = t.info;
-      menuLinks[1].textContent = t.res;
-      menuLinks[2].textContent = t.credit;
-      settingsBtn.setAttribute("aria-label", t.settingsAria);
-      themeLabel.textContent = t.settingsTheme;
-      langLabel.textContent = t.settingsLanguage;
-      themeSystemOption.textContent = t.themeSystem;
-      themeDarkOption.textContent = t.themeDark;
-      themeLightOption.textContent = t.themeLight;
-      langSystemOption.textContent = t.langSystem;
-      langFrOption.textContent = t.langFr;
-      langEnOption.textContent = t.langEn;
-      h1.textContent = t.title;
-      subtitle.textContent = t.subtitle;
-      p[0].textContent = t.p1;
-      p[1].textContent = t.p2;
-      h2[0].textContent = t.rTitle;
-      h2[1].textContent = t.cTitle;
-      resLinks[0].textContent = t.g;
-      resLinks[1].textContent = t.d;
-      resLinks[2].textContent = t.m;
-      creditP[0].textContent = t.c1;
-      creditP[1].textContent = t.c2;
-
-      document.documentElement.lang = effectiveLang;
-      localStorage.setItem("site-lang", langChoice);
-    }
-
-    function openSettingsPanel() {
-      settingsPanel.classList.add("is-open");
-      settingsPanel.setAttribute("aria-hidden", "false");
-      settingsBtn.setAttribute("aria-expanded", "true");
-    }
-
-    function closeSettingsPanel() {
-      settingsPanel.classList.remove("is-open");
-      settingsPanel.setAttribute("aria-hidden", "true");
-      settingsBtn.setAttribute("aria-expanded", "false");
-    }
-
-    settingsBtn.addEventListener("click", () => {
-      const isOpen = settingsPanel.classList.contains("is-open");
-      if (isOpen) {
-        closeSettingsPanel();
-      } else {
-        openSettingsPanel();
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!settingsPanel.contains(event.target) && !settingsBtn.contains(event.target)) {
-        closeSettingsPanel();
-      }
-    });
-
-    settingsPanel.addEventListener("mouseenter", () => {
-      if (closeTimer) {
-        clearTimeout(closeTimer);
-      }
-    });
-
-    settingsPanel.addEventListener("mouseleave", () => {
-      closeTimer = setTimeout(closeSettingsPanel, 120);
-    });
-
-    themeSelect.addEventListener("change", () => applyTheme(themeSelect.value));
-    langSelect.addEventListener("change", () => applyLanguage(langSelect.value));
-
-    const savedTheme = localStorage.getItem("site-theme") || "system";
-    const savedLang = localStorage.getItem("site-lang") || "system";
-    themeSelect.value = ["system", "dark", "light"].includes(savedTheme) ? savedTheme : "system";
-    langSelect.value = ["system", "fr", "en"].includes(savedLang) ? savedLang : "system";
-    applyTheme(themeSelect.value);
-    applyLanguage(langSelect.value);
-
-    systemThemeQuery.addEventListener("change", () => {
-      const selectedTheme = localStorage.getItem("site-theme") || "system";
-      if (selectedTheme === "system") {
-        applyTheme("system");
-      }
-    });
-
-    window.addEventListener("languagechange", () => {
-      const selectedLang = localStorage.getItem("site-lang") || "system";
-      if (selectedLang === "system") {
-        applyLanguage("system");
-      }
-    });
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
+  <script src="assets/Musics/playlist.js"></script>
+  <script src="assets/js/music-player-component.js"></script>
+  <script src="assets/js/site.js"></script>
 </body>
 </html>
+

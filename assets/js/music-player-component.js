@@ -1,0 +1,52 @@
+﻿(() => {
+  const slot = document.getElementById("music-player-slot");
+  if (!slot || slot.dataset.ready === "1") {
+    return;
+  }
+
+  slot.innerHTML = `
+    <div class="tool-pop">
+      <button class="music-btn" id="music-btn" type="button" aria-expanded="false" aria-controls="music-panel" aria-label="Musique">&#9835;</button>
+      <div class="music-panel" id="music-panel" aria-hidden="true">
+        <div class="music-head">
+          <p class="music-title" id="music-title">Music Player</p>
+          <button class="music-mini-btn music-queue-toggle" id="music-queue-btn" type="button" aria-expanded="false" aria-controls="music-queue-panel" aria-label="Queue" title="Queue">&#128193;</button>
+        </div>
+        <div class="music-now">
+          <img class="music-cover" src="assets/images/album-placeholder.svg" alt="Album cover" onerror="this.src='assets/images/album-placeholder.svg'">
+          <div class="music-meta">
+            <p class="music-track-title" id="music-track-title">CTRL_J Theme</p>
+            <p class="music-track-composer" id="music-track-composer">by CTRL_J</p>
+          </div>
+        </div>
+        <div class="music-progress-wrap">
+          <input class="music-progress" id="music-progress" type="range" min="0" max="100" step="0.1" value="0" aria-label="Music progress">
+          <div class="music-time-nav">
+            <button class="music-mini-btn" id="music-prev-btn" type="button" aria-label="Previous track" title="Previous">&#9198;</button>
+            <span id="music-current-time">0:00</span>
+            <span class="music-time-sep">/</span>
+            <span id="music-duration">0:00</span>
+            <button class="music-mini-btn" id="music-next-btn" type="button" aria-label="Next track" title="Next">&#9197;</button>
+          </div>
+        </div>
+        <div class="music-controls">
+          <button class="music-play-btn" id="music-play-btn" type="button" aria-label="Play" title="Play">&#9654;</button>
+          <button class="music-mini-btn" id="music-mute-btn" type="button" aria-label="Mute" title="Mute">&#128266;</button>
+          <input class="music-volume" id="music-volume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume">
+        </div>
+        <div class="music-queue-panel" id="music-queue-panel" aria-hidden="true">
+          <div class="music-queue-head">
+            <p class="music-queue-title" id="music-queue-title">Up Next</p>
+            <button class="music-mini-btn" id="music-shuffle-btn" type="button" aria-label="Shuffle" title="Shuffle">&#128256;</button>
+          </div>
+          <div class="music-queue-list" id="music-queue-list"></div>
+        </div>
+        <audio id="music-audio" preload="metadata">
+          <source src="assets/Musics/Mr.%20Blue%20Sky.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+    </div>
+  `;
+
+  slot.dataset.ready = "1";
+})();

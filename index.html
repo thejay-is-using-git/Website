@@ -1,90 +1,62 @@
 ﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jay Modding | Profil Perso</title>
-  <style>
-    :root{--bg:#0b1220;--card:#111a2b;--txt:#e8f1ff;--muted:#9fb2cf;--accent:#00d4ff}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(160deg,#0b1220,#101b2f);color:var(--txt);line-height:1.6}
-    .wrap{width:min(1000px,92%);margin:auto}
-    header{padding:20px 0;border-bottom:1px solid #22324a}
-    nav{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    .brand{font-weight:700;font-size:1.4rem}.brand span{color:var(--accent)}
-    .links a{color:var(--muted);text-decoration:none;margin-left:14px}
-    .hero{padding:56px 0 28px}
-    h1{font-size:clamp(1.8rem,4vw,3rem);line-height:1.15}
-    p.lead{margin-top:12px;color:var(--muted);max-width:700px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:18px}
-    .card{background:var(--card);border:1px solid #22324a;border-radius:12px;padding:14px}
-    .meta{color:var(--muted);font-size:.9rem;margin:6px 0 8px}
-    .btn{display:inline-block;border:1px solid #2a3f5f;color:var(--txt);text-decoration:none;padding:7px 10px;border-radius:8px;margin-right:8px;margin-top:8px}
-    section{padding:26px 0}
-    footer{padding:18px 0 30px;color:var(--muted);border-top:1px solid #22324a;margin-top:24px}
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CTRL_J</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <nav>
-        <div class="brand">Jay<span>Modding</span></div>
-        <div class="links">
-          <a href="#about">A propos</a>
-          <a href="#mods">Publications</a>
-          <a href="#contact">Contact</a>
-        </div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand" aria-live="polite">
+        <img class="brand-pic" src="CTRL_J.jpg" alt="Photo de profil CTRL_J">
+        <span class="brand-title" id="brand-title">CTRL_J/Website</span><span class="cursor">|</span>
+      </div>
+
+      <nav class="menu" aria-label="Navigation principale">
+        <a href="#information" class="active">Information</a>
+        <a href="#ressources">Ressources</a>
+        <a href="#credit">Credit</a>
       </nav>
+
+      <div></div>
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="hero">
-      <h1>Profil perso modding et publications</h1>
-      <p class="lead">Je cree des mods et je publie ici mes releases, versions et liens de telechargement.</p>
-    </section>
-
-    <section id="about">
-      <h2>A propos</h2>
-      <div class="card" style="margin-top:10px">
-        <p>Moddeur passionne. Jeux cibles: GTA V, Skyrim, Cyberpunk 2077 (a adapter).</p>
+  <main class="page">
+    <section id="information">
+      <h1>Bienvenue sur le site de CTRL_J</h1>
+      <p class="subtitle">Modding, publications et mises a jour.</p>
+      <div class="card">
+      <p>Salut, moi c'est CTRL_J. Je publie ici mes projets de modding et mes nouveaux contenus.</p>
+      <p>Tu peux retrouver mes releases, mes notes de version et mes liens de telechargement.</p>
       </div>
     </section>
 
-    <section id="mods">
-      <h2>Mes publications</h2>
-      <div class="grid">
-        <article class="card">
-          <h3>Ultra Traffic Pack</h3>
-          <p class="meta">Version 1.2 | 10 fevrier 2026</p>
-          <p>Nouveaux vehicules IA et traffic ameliore.</p>
-          <a class="btn" href="#">Telecharger</a><a class="btn" href="#">Publication</a>
-        </article>
-        <article class="card">
-          <h3>Night Lighting Overhaul</h3>
-          <p class="meta">Version 0.9 | 28 janvier 2026</p>
-          <p>Refonte de l'eclairage de nuit.</p>
-          <a class="btn" href="#">Telecharger</a><a class="btn" href="#">Publication</a>
-        </article>
-        <article class="card">
-          <h3>Immersive UI Clean</h3>
-          <p class="meta">Version 2.0 | 11 janvier 2026</p>
-          <p>HUD plus propre et lisible.</p>
-          <a class="btn" href="#">Telecharger</a><a class="btn" href="#">Publication</a>
-        </article>
+    <section id="ressources">
+      <h2>Ressources</h2>
+      <div class="card">
+      <ul>
+        <li><a href="https://github.com/thejay-is-using-git" target="_blank" rel="noopener noreferrer">Mon GitHub</a></li>
+        <li><a href="#" target="_blank" rel="noopener noreferrer">Mon Discord</a></li>
+        <li><a href="#" target="_blank" rel="noopener noreferrer">Mes publications</a></li>
+      </ul>
       </div>
     </section>
 
-    <section id="contact">
-      <h2>Contact</h2>
-      <div class="card" style="margin-top:10px">
-        <p>Discord: tonPseudo#0000 | GitHub: thejay-is-using-git</p>
+    <section id="credit">
+      <h2>Credit</h2>
+      <div class="card">
+        <p>Site cree par CTRL_J.</p>
+        <p>Derniere mise a jour: 2026.</p>
       </div>
     </section>
+
+    <footer>
+      <p>CTRL_J/Website</p>
+    </footer>
   </main>
 
-  <footer>
-    <div class="wrap">© 2026 JayModding</div>
-  </footer>
 </body>
 </html>

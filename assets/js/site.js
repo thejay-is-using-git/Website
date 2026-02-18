@@ -1,8 +1,10 @@
 ﻿(() => {
   const settingsBtn = document.getElementById("settings-btn");
   const settingsPanel = document.getElementById("settings-panel");
+  const animatedSections = Array.from(document.querySelectorAll(".dev-banner, main.page"));
   const musicBtn = document.getElementById("music-btn");
   const musicPanel = document.getElementById("music-panel");
+  const musicNow = musicPanel ? musicPanel.querySelector(".music-now") : null;
   const musicAudio = document.getElementById("music-audio");
   const musicCover = document.querySelector(".music-cover");
   const musicTrackTitle = document.getElementById("music-track-title");
@@ -35,6 +37,7 @@
   let closeTimer = null;
   let musicCloseTimer = null;
   let brandTypeTimer = null;
+  let nowPlayingSwapTimer = null;
 
   const pageName = document.body.dataset.page || "information";
   const lastPageStorageKey = "site-last-page";
@@ -459,7 +462,7 @@
     const savedIndex = playlist.findIndex((track) => track.url === savedTrackUrl);
     currentTrackIndex = savedIndex >= 0 ? savedIndex : 0;
 
-    setTrack(currentTrackIndex, false);
+    setTrack(currentTrackIndex, false, "next", false);
     renderQueue();
   }
 
@@ -507,6 +510,19 @@
     updateMuteButtonLabel();
   }
 
+  function animateNowPlayingChange(direction = "next") {
+    if (!musicNow || reduceMotionQuery.matches) {
+      return;
+    }
+
+    musicNow.classList.remove("is-track-transition");
+    musicNow.classList.remove("is-track-next");
+    musicNow.classList.remove("is-track-prev");
+    void musicNow.offsetWidth;
+    musicNow.classList.add("is-track-transition");
+    musicNow.classList.add(direction === "prev" ? "is-track-prev" : "is-track-next");
+  }
+
   function tryPendingAutoplay() {
     if (!musicAudio || !pendingAutoplay) {
       return;
@@ -531,7 +547,7 @@
     return playlist[currentTrackIndex] || null;
   }
 
-  function setTrack(index, autoplay = false) {
+  function setTrack(index, autoplay = false, direction = "next", animate = true) {
     if (!musicAudio || !playlist.length) {
       return;
     }
@@ -551,15 +567,19 @@
     pendingAutoplay = autoplay;
     pendingAutoplayUrl = requestUrl;
     musicAudio.load();
+    if (nowPlayingSwapTimer) {
+      clearTimeout(nowPlayingSwapTimer);
+      nowPlayingSwapTimer = null;
+    }
 
-    if (musicTrackTitle) {
-      musicTrackTitle.textContent = track.title || filenameToTitle(track.url);
-    }
-    if (musicTrackComposer) {
-      musicTrackComposer.textContent = track.artist || (activeTranslation.musicTrackComposer || "");
-    }
-    if (musicCover) {
-      applyCoverToImage(musicCover, track);
+    if (animate && musicNow && !reduceMotionQuery.matches) {
+      animateNowPlayingChange(direction);
+      nowPlayingSwapTimer = setTimeout(() => {
+        syncNowPlayingFromTrack(track);
+        nowPlayingSwapTimer = null;
+      }, 150);
+    } else {
+      syncNowPlayingFromTrack(track);
     }
 
     localStorage.setItem(musicTrackStorageKey, track.url);
@@ -578,7 +598,7 @@
     if (!playlist.length) {
       return;
     }
-    setTrack(currentTrackIndex + 1, autoplay);
+    setTrack(currentTrackIndex + 1, autoplay, "next", true);
   }
 
   function goToNextPlayableTrack(autoplay = true) {
@@ -591,7 +611,7 @@
       if (!candidate || brokenTrackUrls.has(candidate.url)) {
         continue;
       }
-      setTrack(idx, autoplay);
+      setTrack(idx, autoplay, "next", true);
       return;
     }
   }
@@ -605,7 +625,7 @@
       syncMusicUi();
       return;
     }
-    setTrack(currentTrackIndex - 1, true);
+    setTrack(currentTrackIndex - 1, true, "prev", true);
   }
 
   function shufflePlaylist() {
@@ -662,7 +682,14 @@
       item.appendChild(meta);
 
       item.addEventListener("click", () => {
-        setTrack(idx, true);
+        item.classList.remove("is-selecting");
+        void item.offsetWidth;
+        item.classList.add("is-selecting");
+        setTimeout(() => {
+          item.classList.remove("is-selecting");
+        }, 260);
+        const direction = idx < currentTrackIndex ? "prev" : "next";
+        setTrack(idx, true, direction, true);
       });
 
       musicQueueList.appendChild(item);
@@ -970,15 +997,22 @@
       }
 
       const href = link.getAttribute("href");
-      if (!href || targetPage === pageName || reduceMotionQuery.matches) {
+      if (!href || targetPage === pageName) {
+        event.preventDefault();
+        return;
+      }
+
+      if (reduceMotionQuery.matches) {
         return;
       }
 
       event.preventDefault();
-      document.body.classList.add("is-page-exit");
+      animatedSections.forEach((node) => {
+        node.classList.add("is-section-exit");
+      });
       setTimeout(() => {
         window.location.href = href;
-      }, 220);
+      }, 380);
     });
   });
 

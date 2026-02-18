@@ -203,13 +203,15 @@
   function normalizeTrack(raw, index) {
     if (typeof raw === "string") {
       const url = raw.startsWith("http") || raw.startsWith(musicBasePath) ? raw : `${musicBasePath}${raw}`;
+      const coverCandidates = buildCoverCandidates(url, "");
       return {
         id: `${index}-${url}`,
         url,
         requestUrl: encodeTrackUrl(url),
         title: filenameToTitle(url),
         artist: "",
-        cover: ""
+        cover: "",
+        coverCandidates
       };
     }
 
@@ -223,6 +225,8 @@
     }
 
     const url = fileOrUrl.startsWith("http") || fileOrUrl.startsWith(musicBasePath) ? fileOrUrl : `${musicBasePath}${fileOrUrl}`;
+    const normalizedCover = normalizeCoverUrl(raw.cover || "");
+    const coverCandidates = buildCoverCandidates(url, normalizedCover);
 
     return {
       id: raw.id || `${index}-${url}`,
@@ -230,7 +234,8 @@
       requestUrl: encodeTrackUrl(url),
       title: raw.title || filenameToTitle(url),
       artist: raw.artist || raw.composer || "",
-      cover: raw.cover || ""
+      cover: normalizedCover,
+      coverCandidates
     };
   }
 
@@ -248,6 +253,89 @@
     }
 
     return encodeURI(normalized).replace(/#/g, "%23");
+  }
+
+  function normalizeCoverUrl(cover) {
+    if (!cover || typeof cover !== "string") {
+      return "";
+    }
+    if (
+      cover.startsWith("http") ||
+      cover.startsWith("data:") ||
+      cover.startsWith("/") ||
+      cover.startsWith("assets/")
+    ) {
+      return cover;
+    }
+    return `${musicBasePath}covers/${cover}`;
+  }
+
+  function filenameWithoutExtension(pathOrUrl) {
+    const base = getBasename(pathOrUrl);
+    return base.replace(/\.[a-z0-9]+$/i, "").trim();
+  }
+
+  function slugifyCoverName(name) {
+    const normalized = (name || "")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    return normalized || "emoji-track";
+  }
+
+  function buildCoverCandidates(trackUrl, explicitCover) {
+    const extList = ["jpg", "jpeg", "png", "webp"];
+    const rawName = filenameWithoutExtension(trackUrl);
+    const slug = slugifyCoverName(rawName);
+    const candidates = [];
+
+    if (explicitCover) {
+      candidates.push(normalizeCoverUrl(explicitCover));
+    }
+
+    extList.forEach((ext) => {
+      candidates.push(`${musicBasePath}covers/${rawName}.${ext}`);
+      candidates.push(`${musicBasePath}covers/${slug}.${ext}`);
+    });
+
+    return [...new Set(candidates.map((entry) => encodeTrackUrl(entry)))];
+  }
+
+  function applyCoverToImage(img, track) {
+    if (!img) {
+      return;
+    }
+
+    const queue = [];
+    if (track && track.cover) {
+      queue.push(track.cover);
+    }
+    if (track && Array.isArray(track.coverCandidates)) {
+      queue.push(...track.coverCandidates);
+    }
+    queue.push(defaultCoverSrc);
+
+    const uniqueQueue = [...new Set(queue.filter(Boolean))];
+    let cursor = 0;
+
+    function setNext() {
+      const nextSrc = uniqueQueue[cursor] || fallbackCoverSrc;
+      cursor += 1;
+      img.src = nextSrc;
+    }
+
+    img.onerror = () => {
+      if (cursor < uniqueQueue.length) {
+        setNext();
+        return;
+      }
+      img.onerror = null;
+      img.src = fallbackCoverSrc;
+    };
+
+    setNext();
   }
 
   async function detectTracksFromDirectory() {
@@ -469,7 +557,7 @@
       musicTrackComposer.textContent = track.artist || (activeTranslation.musicTrackComposer || "");
     }
     if (musicCover) {
-      musicCover.src = track.cover || defaultCoverSrc;
+      applyCoverToImage(musicCover, track);
     }
 
     localStorage.setItem(musicTrackStorageKey, track.url);
@@ -556,11 +644,8 @@
 
       const cover = document.createElement("img");
       cover.className = "music-queue-cover";
-      cover.src = track.cover || defaultCoverSrc;
       cover.alt = track.title;
-      cover.onerror = () => {
-        cover.src = fallbackCoverSrc;
-      };
+      applyCoverToImage(cover, track);
 
       const meta = document.createElement("div");
       const name = document.createElement("p");
@@ -613,7 +698,7 @@
       musicTrackComposer.textContent = track.artist || (activeTranslation.musicTrackComposer || "");
     }
     if (musicCover) {
-      musicCover.src = track.cover || defaultCoverSrc;
+      applyCoverToImage(musicCover, track);
     }
   }
 

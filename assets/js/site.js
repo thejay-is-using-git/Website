@@ -37,7 +37,9 @@
   let closeTimer = null;
   let musicCloseTimer = null;
   let brandTypeTimer = null;
+  let tabTitleTimer = null;
   let nowPlayingSwapTimer = null;
+  let starnightContainer = null;
 
   const pageName = document.body.dataset.page || "information";
   const lastPageStorageKey = "site-last-page";
@@ -46,17 +48,27 @@
   const musicTrackStorageKey = "site-music-track";
   const musicVolumeStorageKey = "site-music-volume";
   const musicMuteStorageKey = "site-music-muted";
-  const musicBasePath = "assets/Musics/";
-  const fallbackCoverSrc = "assets/images/album-placeholder.svg";
+  const musicStateStorageKey = "site-music-state";
+  const isNestedPage = /\/(resources|credit)(\/|$)/i.test(window.location.pathname || "");
+  const assetRoot = isNestedPage ? "../assets/" : "assets/";
+  const musicBasePath = `${assetRoot}Musics/`;
+  const fallbackCoverSrc = `${assetRoot}images/album-placeholder.svg`;
 
   const titleByPage = {
     information: "Website",
     ressources: "Resources",
     credit: "Credit"
   };
+  const tabTitleByPage = {
+    information: "Home",
+    ressources: "Resources",
+    credit: "Credit"
+  };
   const pathToPage = {
     "index.html": "information",
+    "resources": "ressources",
     "resources.html": "ressources",
+    "credit": "credit",
     "credit.html": "credit"
   };
 
@@ -74,7 +86,8 @@
 
     try {
       const url = new URL(href, window.location.href);
-      const filename = url.pathname.split("/").pop() || "index.html";
+      const normalizedPath = url.pathname.replace(/\/+$/, "");
+      const filename = normalizedPath.split("/").pop() || "index.html";
       return pathToPage[filename] || null;
     } catch (_) {
       return null;
@@ -134,7 +147,70 @@
   function applyTheme(themeChoice) {
     const effectiveTheme = themeChoice === "system" ? getSystemTheme() : themeChoice;
     root.setAttribute("data-theme", effectiveTheme);
+    setStarnightActive(effectiveTheme === "starnight");
     localStorage.setItem("site-theme", themeChoice);
+  }
+
+  function random(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function ensureStarnightContainer() {
+    if (starnightContainer) {
+      return starnightContainer;
+    }
+
+    const backgroundContainer = document.createElement("div");
+    backgroundContainer.className = "starnight-bg";
+    backgroundContainer.setAttribute("aria-hidden", "true");
+
+    for (let i = 0; i < 70; i += 1) {
+      const star = document.createElement("span");
+      star.className = "starnight-star";
+      star.style.top = `${random(0, 100)}%`;
+      star.style.left = `${random(0, 100)}%`;
+      star.style.opacity = `${Math.random() * 0.7 + 0.2}`;
+      star.style.animationDelay = `${(Math.random() * 3.2).toFixed(2)}s`;
+      star.style.animationDuration = `${(Math.random() * 2.4 + 2.8).toFixed(2)}s`;
+      backgroundContainer.appendChild(star);
+    }
+
+    /*
+    Pure CSS Shooting Star Animation Effect Copyright (c) 2021 by Delroy Prithvi (https://codepen.io/delroyprithvi/pen/LYyJROR)
+    License: MIT
+    */
+    const shootingLayer = document.createElement("div");
+    shootingLayer.className = "starnight-shooting-layer";
+    for (let i = 0; i < 24; i += 1) {
+      const shootingstar = document.createElement("span");
+      shootingstar.className = "shootingstar";
+      shootingstar.style.top = `${random(0, 70)}%`;
+      shootingstar.style.right = `${random(-5, 100)}%`;
+      shootingstar.style.animationDelay = `${(Math.random() * 5).toFixed(2)}s`;
+      shootingstar.style.animationDuration = `${(Math.random() * 2 + 1.2).toFixed(2)}s`;
+      shootingLayer.appendChild(shootingstar);
+    }
+    backgroundContainer.appendChild(shootingLayer);
+
+    document.body.appendChild(backgroundContainer);
+    starnightContainer = backgroundContainer;
+    return starnightContainer;
+  }
+
+  function setStarnightActive(active) {
+    if (active) {
+      const container = ensureStarnightContainer();
+      if (!container) {
+        return;
+      }
+      container.classList.add("is-active");
+    } else {
+      if (!starnightContainer) {
+        return;
+      }
+      const container = starnightContainer;
+      container.classList.remove("is-active");
+    }
   }
 
   function animateReplaceText(node, targetText) {
@@ -239,7 +315,10 @@
       return null;
     }
 
-    const url = fileOrUrl.startsWith("http") || fileOrUrl.startsWith(musicBasePath) ? fileOrUrl : `${musicBasePath}${fileOrUrl}`;
+    const resolvedFileOrUrl = resolveAssetPath(fileOrUrl);
+    const url = resolvedFileOrUrl.startsWith("http") || resolvedFileOrUrl.startsWith(musicBasePath)
+      ? resolvedFileOrUrl
+      : `${musicBasePath}${resolvedFileOrUrl}`;
     const normalizedCover = normalizeCoverUrl(raw.cover || "");
     const coverCandidates = buildCoverCandidates(url, normalizedCover);
 
@@ -274,15 +353,64 @@
     if (!cover || typeof cover !== "string") {
       return "";
     }
+    const resolvedCover = resolveAssetPath(cover);
     if (
-      cover.startsWith("http") ||
-      cover.startsWith("data:") ||
-      cover.startsWith("/") ||
-      cover.startsWith("assets/")
+      resolvedCover.startsWith("http") ||
+      resolvedCover.startsWith("data:") ||
+      resolvedCover.startsWith("/") ||
+      resolvedCover.startsWith(assetRoot)
     ) {
-      return cover;
+      return resolvedCover;
     }
-    return `${musicBasePath}covers/${cover}`;
+    return `${musicBasePath}covers/${resolvedCover}`;
+  }
+
+  function saveMusicState() {
+    if (!musicAudio) {
+      return;
+    }
+
+    const track = getCurrentTrack();
+    const state = {
+      trackUrl: track ? track.url : localStorage.getItem(musicTrackStorageKey) || "",
+      currentTime: Number.isFinite(musicAudio.currentTime) ? musicAudio.currentTime : 0,
+      wasPlaying: !musicAudio.paused,
+      volume: Number.isFinite(musicAudio.volume) ? musicAudio.volume : 1,
+      muted: Boolean(musicAudio.muted),
+      updatedAt: Date.now()
+    };
+
+    try {
+      sessionStorage.setItem(musicStateStorageKey, JSON.stringify(state));
+    } catch (_) {
+      // ignore storage failures
+    }
+  }
+
+  function readSavedMusicState() {
+    try {
+      const raw = sessionStorage.getItem(musicStateStorageKey);
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") {
+        return null;
+      }
+      return parsed;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function resolveAssetPath(pathOrUrl) {
+    if (!pathOrUrl || typeof pathOrUrl !== "string") {
+      return "";
+    }
+    if (isNestedPage && pathOrUrl.startsWith("assets/")) {
+      return `../${pathOrUrl}`;
+    }
+    return pathOrUrl;
   }
 
   function filenameWithoutExtension(pathOrUrl) {
@@ -458,11 +586,47 @@
       return;
     }
 
-    const savedTrackUrl = localStorage.getItem(musicTrackStorageKey);
+    const savedState = readSavedMusicState();
+    const savedTrackUrl = (savedState && savedState.trackUrl) || localStorage.getItem(musicTrackStorageKey);
     const savedIndex = playlist.findIndex((track) => track.url === savedTrackUrl);
     currentTrackIndex = savedIndex >= 0 ? savedIndex : 0;
 
     setTrack(currentTrackIndex, false, "next", false);
+    if (musicAudio && savedState && savedState.trackUrl === (playlist[currentTrackIndex] && playlist[currentTrackIndex].url)) {
+      if (Number.isFinite(savedState.volume) && savedState.volume >= 0 && savedState.volume <= 1) {
+        musicAudio.volume = savedState.volume;
+        if (musicVolume) {
+          musicVolume.value = String(savedState.volume);
+        }
+      }
+      musicAudio.muted = Boolean(savedState.muted);
+
+      const resumeTime = Number(savedState.currentTime);
+      if (Number.isFinite(resumeTime) && resumeTime > 0) {
+        const applyResumeTime = () => {
+          const maxTime = Number.isFinite(musicAudio.duration) && musicAudio.duration > 0
+            ? Math.max(0, musicAudio.duration - 0.25)
+            : resumeTime;
+          musicAudio.currentTime = Math.min(resumeTime, maxTime);
+          syncMusicUi();
+        };
+
+        if (musicAudio.readyState >= 1) {
+          applyResumeTime();
+        } else {
+          musicAudio.addEventListener("loadedmetadata", applyResumeTime, { once: true });
+        }
+      }
+
+      if (savedState.wasPlaying) {
+        pendingAutoplay = true;
+        pendingAutoplayUrl = playlist[currentTrackIndex].requestUrl || playlist[currentTrackIndex].url;
+        if (musicAudio.readyState >= 2) {
+          tryPendingAutoplay();
+        }
+      }
+    }
+
     renderQueue();
   }
 
@@ -791,6 +955,60 @@
     brandTypeTimer = setTimeout(writeStep, 30);
   }
 
+  function typeTabTitle(targetTitle, force = false) {
+    const currentTitle = document.title || "";
+
+    if (reduceMotionQuery.matches) {
+      document.title = targetTitle;
+      return;
+    }
+
+    if (tabTitleTimer) {
+      clearTimeout(tabTitleTimer);
+    }
+
+    if (!force && targetTitle === currentTitle) {
+      document.title = targetTitle;
+      return;
+    }
+    let writeIndex = 0;
+    document.title = "";
+
+    function writeStep() {
+      writeIndex += 1;
+      document.title = targetTitle.slice(0, writeIndex);
+      if (writeIndex < targetTitle.length) {
+        tabTitleTimer = setTimeout(writeStep, 500);
+      }
+    }
+
+    tabTitleTimer = setTimeout(writeStep, 500);
+  }
+
+  function typeTabTitleWriteOnly(targetTitle) {
+    if (reduceMotionQuery.matches) {
+      document.title = targetTitle;
+      return;
+    }
+
+    if (tabTitleTimer) {
+      clearTimeout(tabTitleTimer);
+    }
+
+    document.title = "";
+    let writeIndex = 0;
+
+    function writeStep() {
+      writeIndex += 1;
+      document.title = targetTitle.slice(0, writeIndex);
+      if (writeIndex < targetTitle.length) {
+        tabTitleTimer = setTimeout(writeStep, 500);
+      }
+    }
+
+    tabTitleTimer = setTimeout(writeStep, 500);
+  }
+
   function applyLanguage(langChoice, animate = false) {
     const effectiveLang = langChoice === "system" ? getSystemLanguage() : langChoice;
     const t = translations[effectiveLang] || translations.fr || {};
@@ -807,6 +1025,7 @@
       ["#theme-system-option", t.themeSystem],
       ["#theme-dark-option", t.themeDark],
       ["#theme-light-option", t.themeLight],
+      ["#theme-starnight-option", t.themeStarnight],
       ["#lang-system-option", t.langSystem],
       ["#lang-fr-option", t.langFr],
       ["#lang-en-option", t.langEn],
@@ -816,6 +1035,20 @@
       ["#home-p1", t.p1],
       ["#home-p2", t.p2],
       ["#resources-title", t.rTitle],
+      ["#resources-main-title", t.resourcesMainTitle],
+      ["#resources-main-subtitle", t.resourcesMainSubtitle],
+      ["#resources-filter-all", t.resourcesFilterAll],
+      ["#resources-filter-wii", t.resourcesFilterWii],
+      ["#resources-filter-wiiu", t.resourcesFilterWiiU],
+      ["#resources-catalog-title", t.resourcesCatalogTitle],
+      ["#resources-card1-badge", t.resourcesCard1Badge],
+      ["#resources-card1-title", t.resourcesCard1Title],
+      ["#resources-card1-by", t.resourcesCard1By],
+      ["#resources-card1-desc", t.resourcesCard1Desc],
+      ["#resources-card2-badge", t.resourcesCard2Badge],
+      ["#resources-card2-title", t.resourcesCard2Title],
+      ["#resources-card2-by", t.resourcesCard2By],
+      ["#resources-card2-desc", t.resourcesCard2Desc],
       ["#resources-link-g", t.g],
       ["#resources-link-d", t.d],
       ["#resources-link-m", t.m],
@@ -1036,6 +1269,7 @@
 
       sessionStorage.setItem(pendingFromStorageKey, pageName);
       sessionStorage.setItem(pendingTargetStorageKey, targetPage);
+      saveMusicState();
 
       if (reduceMotionQuery.matches) {
         return;
@@ -1142,9 +1376,12 @@
   const savedLang = localStorage.getItem("site-lang") || "system";
 
   if (themeSelect) {
-    themeSelect.value = ["system", "dark", "light"].includes(savedTheme) ? savedTheme : "system";
+    themeSelect.value = ["system", "dark", "light", "starnight"].includes(savedTheme) ? savedTheme : "system";
     applyTheme(themeSelect.value);
   }
+
+  window.addEventListener("pagehide", saveMusicState);
+  window.addEventListener("beforeunload", saveMusicState);
 
   if (langSelect) {
     langSelect.value = ["system", "fr", "en"].includes(savedLang) ? savedLang : "system";
@@ -1171,6 +1408,8 @@
   });
 
   const targetBrandSuffix = titleByPage[pageName] || "Website";
+  const targetTabTitle = `${brandPrefix}${targetBrandSuffix}`;
+  const previousTabTitle = previousPageName ? `${brandPrefix}${titleByPage[previousPageName] || ""}` : "";
   const reloadNavigation = isPageReload();
   const shouldAnimateBrand = !reduceMotionQuery.matches && !reloadNavigation;
 
@@ -1183,14 +1422,20 @@
       brandTitle.textContent = brandPrefix;
       currentBrandSuffix = "";
     }
+    if (previousTabTitle && previousTabTitle !== targetTabTitle) {
+      document.title = previousTabTitle;
+    }
     setTimeout(() => {
       typeBrandTitle(targetBrandSuffix, true);
+      typeTabTitle(targetTabTitle, true);
     }, 1000);
   } else {
     if (reloadNavigation) {
       typeBrandTitleWriteOnly(targetBrandSuffix);
+      typeTabTitleWriteOnly(targetTabTitle);
     } else {
       typeBrandTitle(targetBrandSuffix, true);
+      typeTabTitle(targetTabTitle, true);
     }
   }
   sessionStorage.removeItem(pendingFromStorageKey);

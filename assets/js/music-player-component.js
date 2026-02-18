@@ -4,6 +4,11 @@
     return;
   }
 
+  const isNestedPage = /\/(resources|credit)(\/|$)/i.test(window.location.pathname || "");
+  const assetRoot = isNestedPage ? "../assets/" : "assets/";
+  const placeholderCover = `${assetRoot}images/album-placeholder.svg`;
+  const defaultTrack = `${assetRoot}Musics/Mr.%20Blue%20Sky.mp3`;
+
   slot.innerHTML = `
     <div class="tool-pop">
       <button class="music-btn" id="music-btn" type="button" aria-expanded="false" aria-controls="music-panel" aria-label="Musique">&#9835;</button>
@@ -13,7 +18,7 @@
           <button class="music-mini-btn music-queue-toggle" id="music-queue-btn" type="button" aria-expanded="false" aria-controls="music-queue-panel" aria-label="Queue" title="Queue">&#128193;</button>
         </div>
         <div class="music-now">
-          <img class="music-cover" src="assets/images/album-placeholder.svg" alt="Album cover" onerror="this.src='assets/images/album-placeholder.svg'">
+          <img class="music-cover" src="${placeholderCover}" alt="Album cover" onerror="this.src='${placeholderCover}'">
           <div class="music-meta">
             <p class="music-track-title" id="music-track-title">CTRL_J Theme</p>
             <p class="music-track-composer" id="music-track-composer">by CTRL_J</p>
@@ -42,7 +47,7 @@
           <div class="music-queue-list" id="music-queue-list"></div>
         </div>
         <audio id="music-audio" preload="metadata">
-          <source src="assets/Musics/Mr.%20Blue%20Sky.mp3" type="audio/mpeg">
+          <source src="${defaultTrack}" type="audio/mpeg">
         </audio>
       </div>
     </div>

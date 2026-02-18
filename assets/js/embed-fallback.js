@@ -38,11 +38,11 @@
     image: `${base}/assets/images/Background.jpg`
   };
 
-  if (path.includes("resources.html")) {
+  if (path.includes("/resources/") || path.endsWith("/resources") || path.includes("resources.html")) {
     defaults.title = "CTRL_J - Resources";
     defaults.description = "Retrouve les ressources de CTRL_J: liens utiles, publications, modding et communautes.";
     defaults.image = `${base}/assets/images/CTRL_J.png`;
-  } else if (path.includes("credit.html")) {
+  } else if (path.includes("/credit/") || path.endsWith("/credit") || path.includes("credit.html")) {
     defaults.title = "CTRL_J - Credit";
     defaults.description = "Credits du site CTRL_J et informations sur la creation du projet.";
     defaults.image = `${base}/assets/images/CTRL_J.png`;

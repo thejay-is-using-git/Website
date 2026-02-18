@@ -1,0 +1,104 @@
+:root[data-theme="starnight"] {
+  color-scheme: dark;
+  --text: #e7efff;
+  --muted: #9fb2db;
+  --line: #3a4c73;
+  --link: #7dc2ff;
+  --panel: rgba(8, 13, 26, 0.74);
+  --panel-card: rgba(11, 18, 34, 0.86);
+  --topbar-bg: rgba(7, 12, 24, 0.8);
+  --field-bg: rgba(122, 176, 255, 0.12);
+  --bg-gradient: radial-gradient(1200px 600px at 8% 0%, #1a2d62 0%, #090f25 48%, #060a18 100%);
+  --overlay: linear-gradient(180deg, rgba(6, 10, 22, 0.28), rgba(5, 9, 20, 0.5));
+  --spice-rgb-shooting-star-glow: 125, 194, 255;
+}
+
+:root[data-theme="starnight"] body::before {
+  filter: blur(0px);
+  opacity: 0;
+  transform: scale(1.03);
+}
+
+:root[data-theme="starnight"] body::after {
+  z-index: -2;
+}
+
+.starnight-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+
+.starnight-bg.is-active {
+  opacity: 1;
+}
+
+.starnight-shooting-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.starnight-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(231, 240, 255, 0.9);
+  animation: starnight-twinkle 3.8s ease-in-out infinite;
+}
+
+.shootingstar {
+  position: absolute;
+  top: 50%;
+  left: auto;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), 0 0 0 8px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 0.1);
+  animation: starnight-shooting-star 3s linear infinite;
+  animation-fill-mode: both;
+}
+
+.shootingstar::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 300px;
+  height: 1px;
+  background: linear-gradient(90deg, #fff, transparent);
+}
+
+@keyframes starnight-twinkle {
+  0%, 100% { opacity: 0.38; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.18); }
+}
+
+@keyframes starnight-shooting-star {
+  0% {
+    opacity: 0;
+    transform: rotate(315deg) translateX(0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(315deg) translateX(-1000px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starnight-bg,
+  .starnight-star,
+  .shootingstar {
+    animation: none !important;
+    transition: none !important;
+  }
+}

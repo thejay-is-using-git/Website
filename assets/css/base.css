@@ -53,8 +53,10 @@ body::before {
   inset: 0;
   background: url("../images/Background.jpg") center / cover no-repeat;
   filter: blur(7px);
+  opacity: 1;
   transform: scale(1.06);
   z-index: -2;
+  transition: filter 420ms ease, opacity 420ms ease, transform 420ms ease;
 }
 
 body::after {
@@ -503,7 +505,9 @@ body::after {
 .dev-banner {
   width: min(1080px, 94%);
   margin: 14px auto 0;
-  position: relative;
+  position: sticky;
+  top: 82px;
+  z-index: 9;
   overflow: hidden;
   border: 1px solid rgba(255, 214, 26, 0.38);
   border-radius: 10px;
@@ -733,6 +737,7 @@ footer {
   .dev-banner {
     width: min(100%, 96%);
     margin-top: 10px;
+    top: 74px;
     padding: 9px 10px;
   }
 

@@ -1,29 +1,33 @@
 ﻿(() => {
-  const basePath = "assets/Musics/";
+  const isNestedPage = /\/(resources|credit)(\/|$)/i.test(window.location.pathname || "");
+  const assetRoot = isNestedPage ? "../assets/" : "assets/";
+  const basePath = `${assetRoot}Musics/`;
+  const placeholderCover = `${assetRoot}images/album-placeholder.svg`;
+
   const fallbackTracks = [
     {
       file: "Mr. Blue Sky.mp3",
       title: "Mr. Blue Sky",
       artist: "Electric Light Orchestra",
-      cover: "assets/Musics/covers/mr-blue-sky.jpg"
+      cover: `${basePath}covers/mr-blue-sky.jpg`
     },
     {
       file: "Kubbi _ Overworld.mp3",
       title: "Kubbi - Overworld",
       artist: "Kubbi",
-      cover: "assets/images/album-placeholder.svg"
+      cover: placeholderCover
     },
     {
       file: "PlasticSixwall.mp3",
       title: "PlasticSixwall",
       artist: "CTRL_J",
-      cover: "assets/images/album-placeholder.svg"
+      cover: placeholderCover
     },
     {
       file: "EEYUH 2_audio only.mp3",
       title: "EEYUH 2",
       artist: "HR",
-      cover: "assets/Musics/covers/FLUXXKLUB!.jpg"
+      cover: `${basePath}covers/FLUXXKLUB!.jpg`
     }
   ];
 

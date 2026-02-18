@@ -1089,8 +1089,7 @@
     renderQueue();
   });
 
-  const hasReferrer = Boolean(document.referrer);
-  const shouldAnimateBrandFromLastPage = hasKnownLastPage || hasReferrer;
+  const shouldAnimateBrandFromLastPage = true;
   typeBrandTitle(titleByPage[pageName] || "Website", shouldAnimateBrandFromLastPage);
   sessionStorage.removeItem(pendingFromStorageKey);
   sessionStorage.removeItem(pendingTargetStorageKey);

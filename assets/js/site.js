@@ -759,6 +759,38 @@
     eraseStep();
   }
 
+  function typeBrandTitleWriteOnly(targetSuffix) {
+    if (!brandTitle) {
+      return;
+    }
+
+    if (reduceMotionQuery.matches) {
+      brandTitle.textContent = `${brandPrefix}${targetSuffix}`;
+      currentBrandSuffix = targetSuffix;
+      return;
+    }
+
+    if (brandTypeTimer) {
+      clearTimeout(brandTypeTimer);
+    }
+
+    brandTitle.textContent = brandPrefix;
+    currentBrandSuffix = "";
+    let writeIndex = 0;
+
+    function writeStep() {
+      writeIndex += 1;
+      brandTitle.textContent = `${brandPrefix}${targetSuffix.slice(0, writeIndex)}`;
+      if (writeIndex < targetSuffix.length) {
+        brandTypeTimer = setTimeout(writeStep, 34);
+        return;
+      }
+      currentBrandSuffix = targetSuffix;
+    }
+
+    brandTypeTimer = setTimeout(writeStep, 30);
+  }
+
   function applyLanguage(langChoice, animate = false) {
     const effectiveLang = langChoice === "system" ? getSystemLanguage() : langChoice;
     const t = translations[effectiveLang] || translations.fr || {};
@@ -982,9 +1014,6 @@
         return;
       }
 
-      sessionStorage.setItem(pendingFromStorageKey, pageName);
-      sessionStorage.setItem(pendingTargetStorageKey, targetPage);
-
       if (
         event.metaKey ||
         event.ctrlKey ||
@@ -997,10 +1026,16 @@
       }
 
       const href = link.getAttribute("href");
-      if (!href || targetPage === pageName) {
+      if (!href) {
         event.preventDefault();
         return;
       }
+      if (targetPage === pageName) {
+        return;
+      }
+
+      sessionStorage.setItem(pendingFromStorageKey, pageName);
+      sessionStorage.setItem(pendingTargetStorageKey, targetPage);
 
       if (reduceMotionQuery.matches) {
         return;
@@ -1136,7 +1171,8 @@
   });
 
   const targetBrandSuffix = titleByPage[pageName] || "Website";
-  const shouldAnimateBrand = !reduceMotionQuery.matches && !isPageReload();
+  const reloadNavigation = isPageReload();
+  const shouldAnimateBrand = !reduceMotionQuery.matches && !reloadNavigation;
 
   if (brandTitle && shouldAnimateBrand) {
     const previousBrandSuffix = previousPageName ? (titleByPage[previousPageName] || "") : "";
@@ -1151,7 +1187,11 @@
       typeBrandTitle(targetBrandSuffix, true);
     }, 1000);
   } else {
-    typeBrandTitle(targetBrandSuffix, true);
+    if (reloadNavigation) {
+      typeBrandTitleWriteOnly(targetBrandSuffix);
+    } else {
+      typeBrandTitle(targetBrandSuffix, true);
+    }
   }
   sessionStorage.removeItem(pendingFromStorageKey);
   sessionStorage.removeItem(pendingTargetStorageKey);

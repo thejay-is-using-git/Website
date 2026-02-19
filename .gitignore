@@ -2,9 +2,9 @@ nodejs/*
 !nodejs/package.json
 !nodejs/package-lock.json
 !nodejs/vite.config.js
-website/dist/
+dist/
 start-local*.bat
 backend/node_modules/
 backend/tmp/
 backend/.env
-website/src/.vite/
+src/.vite/

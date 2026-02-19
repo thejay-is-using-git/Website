@@ -3,9 +3,9 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
-const websiteRoot = resolve(rootDir, "../website/src");
-const websitePublic = resolve(rootDir, "../website/public");
-const websiteDist = resolve(rootDir, "../website/dist");
+const websiteRoot = resolve(rootDir, "../src");
+const websitePublic = resolve(rootDir, "../public");
+const websiteDist = resolve(rootDir, "../dist");
 
 export default defineConfig(({ command }) => ({
   root: websiteRoot,
@@ -16,11 +16,11 @@ export default defineConfig(({ command }) => ({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(rootDir, "../website/src/index.html"),
-        resources: resolve(rootDir, "../website/src/resources/index.html"),
-        credit: resolve(rootDir, "../website/src/credit/index.html"),
-        ninconvert: resolve(rootDir, "../website/src/ninconvert/index.html"),
-        placeholder: resolve(rootDir, "../website/src/placeholder/index.html")
+        main: resolve(rootDir, "../src/index.html"),
+        resources: resolve(rootDir, "../src/resources/index.html"),
+        credit: resolve(rootDir, "../src/credit/index.html"),
+        ninconvert: resolve(rootDir, "../src/ninconvert/index.html"),
+        placeholder: resolve(rootDir, "../src/placeholder/index.html")
       }
     }
   }

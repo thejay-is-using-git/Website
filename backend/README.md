@@ -1,6 +1,6 @@
 # NinConvert Backend
 
-Backend API for `website/src/ninconvert/index.html`.
+Backend API for `src/ninconvert/index.html`.
 
 ## Features
 

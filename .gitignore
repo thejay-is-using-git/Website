@@ -1,0 +1,7 @@
+nodejs/
+website/dist/
+start-local*.bat
+backend/node_modules/
+backend/tmp/
+backend/.env
+website/src/.vite/

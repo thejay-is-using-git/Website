@@ -205,9 +205,17 @@
 }
 
 .resource-card.is-filter-gone {
+  display: none;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+
+.resource-card-grid:not(.is-single) .resource-card.is-last-odd {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  width: 100%;
+  max-width: 100%;
 }
 
 .resource-card.is-filter-exit {
@@ -460,5 +468,172 @@
   .resource-card-body {
     display: block;
     padding: 12px;
+  }
+}
+
+/* Stable filter layout and card interactions */
+.resource-card {
+  --jelly-x: 0px;
+  --jelly-y: 0px;
+  --r-tl: 20px;
+  --r-tr: 20px;
+  --r-br: 20px;
+  --r-bl: 20px;
+  border-radius: var(--r-tl) var(--r-tr) var(--r-br) var(--r-bl);
+  transition: opacity 360ms ease, transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.resource-card.is-filter-gone {
+  display: none !important;
+}
+
+.resource-card.is-clickable {
+  cursor: pointer;
+}
+
+.resource-card.is-clickable .resource-card-cover,
+.resource-card.is-clickable .resource-card-body {
+  transform: translate3d(var(--jelly-x), var(--jelly-y), 0);
+  transition: transform 170ms ease;
+}
+
+.resource-card.is-clickable.is-jelly .resource-card-cover,
+.resource-card.is-clickable.is-jelly .resource-card-body {
+  animation: resource-card-jelly 520ms cubic-bezier(0.25, 0.9, 0.25, 1);
+}
+
+.resource-card.is-clickable a {
+  pointer-events: none;
+}
+
+.resource-author-name {
+  color: #64abff;
+  text-decoration: underline;
+}
+
+.resource-card-grid.is-single .resource-card.is-single-from-left,
+.resource-card-grid.is-single .resource-card.is-single-from-right,
+.resource-card-grid:not(.is-single) .resource-card.is-last-odd {
+  grid-column: 1 / -1;
+  width: 100% !important;
+  max-width: 100%;
+  justify-self: stretch;
+}
+
+.resource-card-grid.is-single.is-single-animate .resource-card {
+  transition: opacity 360ms ease, transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.resource-card-grid.is-single .resource-card.is-single-from-left {
+  transform-origin: left center;
+}
+
+.resource-card-grid.is-single .resource-card.is-single-from-right {
+  transform-origin: right center;
+}
+
+.resource-card-grid.is-single.is-single-animate .resource-card.is-single-from-left {
+  animation: resource-card-stretch-right 680ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
+}
+
+.resource-card-grid.is-single.is-single-animate .resource-card.is-single-from-right {
+  animation: resource-card-stretch-left 680ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
+}
+
+.resource-card.is-last-odd.is-last-odd-animate.is-last-odd-from-left {
+  transform-origin: left center;
+  animation: resource-card-stretch-right 680ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
+}
+
+.resource-card.is-last-odd.is-last-odd-animate.is-last-odd-from-right {
+  transform-origin: right center;
+  animation: resource-card-stretch-left 680ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
+}
+
+.tool-placeholder {
+  margin-top: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(10, 16, 30, 0.75);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+.tool-placeholder.is-open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tool-placeholder-barrier {
+  height: clamp(140px, 22vw, 240px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 204, 72, 0.45);
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.15), transparent 46%),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(12, 20, 38, 0.95) 0 24px,
+      rgba(255, 198, 46, 0.85) 24px 48px
+    );
+}
+
+.tool-placeholder-text {
+  margin: 12px 0 10px;
+  color: var(--text);
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+.tool-placeholder-btn {
+  display: block;
+  margin: 0 auto;
+}
+
+:root[data-theme="light"] .tool-placeholder {
+  background: rgba(235, 242, 252, 0.94);
+  border-color: rgba(30, 51, 86, 0.2);
+}
+
+:root[data-theme="light"] .tool-placeholder-text {
+  color: #2a3853;
+}
+
+@keyframes resource-card-stretch-right {
+  0% {
+    opacity: 0.75;
+    transform: scaleX(0.56);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes resource-card-stretch-left {
+  0% {
+    opacity: 0.75;
+    transform: scaleX(0.56);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes resource-card-jelly {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.03, 0.98);
+  }
+  55% {
+    transform: scale(0.99, 1.02);
+  }
+  100% {
+    transform: scale(1);
   }
 }

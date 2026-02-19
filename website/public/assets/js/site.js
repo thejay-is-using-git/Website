@@ -52,7 +52,7 @@
   const musicMuteStorageKey = "site-music-muted";
   const musicStateStorageKey = "site-music-state";
   const musicAutoStartStorageKey = "site-music-autostart";
-  const isNestedPage = /\/(resources|credit)(\/|$)/i.test(window.location.pathname || "");
+  const isNestedPage = /\/(resources|credit|ninconvert)(\/|$)/i.test(window.location.pathname || "");
   const assetRoot = isNestedPage ? "../assets/" : "assets/";
   const iconBasePath = `${assetRoot}images/icons/`;
   const musicBasePath = `${assetRoot}Musics/`;
@@ -61,27 +61,35 @@
   const titleByPage = {
     information: "Website",
     ressources: "Resources",
-    credit: "Credit"
+    credit: "Credit",
+    ninconvert: "NinConvert"
   };
   const tabTitleByPage = {
     information: "Home",
     ressources: "Resources",
-    credit: "Credit"
+    credit: "Credit",
+    ninconvert: "NinConvert"
   };
   const pathToPage = {
     "index.html": "information",
     "resources": "ressources",
     "resources.html": "ressources",
     "credit": "credit",
-    "credit.html": "credit"
+    "credit.html": "credit",
+    "ninconvert": "ninconvert",
+    "ninconvert.html": "ninconvert"
   };
 
   const defaultCoverSrc = musicCover ? musicCover.src : fallbackCoverSrc;
   const playlist = [];
   const brokenTrackUrls = new Set();
+  const musicFadeInMs = 520;
+  const musicFadeOutMs = 380;
   let currentTrackIndex = 0;
   let pendingAutoplay = false;
   let pendingAutoplayUrl = "";
+  let musicFadeRaf = 0;
+  let musicDesiredVolume = 1;
 
   function getPageFromHref(href) {
     if (!href) {
@@ -380,7 +388,9 @@
       trackFile: track ? getBasename(track.url).toLowerCase() : "",
       currentTime: Number.isFinite(musicAudio.currentTime) ? musicAudio.currentTime : 0,
       wasPlaying: !musicAudio.paused,
-      volume: Number.isFinite(musicAudio.volume) ? musicAudio.volume : 1,
+      volume: Number.isFinite(musicDesiredVolume)
+        ? Math.min(1, Math.max(0, musicDesiredVolume))
+        : (Number.isFinite(musicAudio.volume) ? musicAudio.volume : 1),
       muted: Boolean(musicAudio.muted),
       updatedAt: Date.now()
     };
@@ -407,6 +417,126 @@
       return null;
     }
   }
+
+  function clampVolume(value) {
+    return Math.min(1, Math.max(0, Number(value) || 0));
+  }
+
+  function stopMusicVolumeFade() {
+    if (musicFadeRaf) {
+      cancelAnimationFrame(musicFadeRaf);
+      musicFadeRaf = 0;
+    }
+  }
+
+  function getDesiredMusicVolume() {
+    return clampVolume(musicDesiredVolume);
+  }
+
+  function fadeMusicVolume(from, to, durationMs, onDone) {
+    if (!musicAudio) {
+      if (typeof onDone === "function") {
+        onDone();
+      }
+      return;
+    }
+
+    stopMusicVolumeFade();
+    const startVolume = clampVolume(from);
+    const targetVolume = clampVolume(to);
+    const duration = Math.max(0, Number(durationMs) || 0);
+
+    if (
+      reduceMotionQuery.matches ||
+      duration === 0 ||
+      Math.abs(targetVolume - startVolume) < 0.003
+    ) {
+      musicAudio.volume = targetVolume;
+      if (typeof onDone === "function") {
+        onDone();
+      }
+      return;
+    }
+
+    const startTime = performance.now();
+    musicAudio.volume = startVolume;
+
+    const step = (now) => {
+      if (!musicAudio) {
+        stopMusicVolumeFade();
+        return;
+      }
+      const progress = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - ((1 - progress) * (1 - progress) * (1 - progress));
+      musicAudio.volume = startVolume + (targetVolume - startVolume) * eased;
+      if (progress >= 1) {
+        musicFadeRaf = 0;
+        musicAudio.volume = targetVolume;
+        if (typeof onDone === "function") {
+          onDone();
+        }
+        return;
+      }
+      musicFadeRaf = requestAnimationFrame(step);
+    };
+
+    musicFadeRaf = requestAnimationFrame(step);
+  }
+
+  async function playMusicWithFadeIn() {
+    if (!musicAudio) {
+      return false;
+    }
+
+    const targetVolume = getDesiredMusicVolume();
+    const canFadeIn = !musicAudio.muted && targetVolume > 0.001 && !reduceMotionQuery.matches;
+
+    stopMusicVolumeFade();
+    musicAudio.volume = canFadeIn ? 0 : targetVolume;
+
+    try {
+      await musicAudio.play();
+    } catch (_) {
+      musicAudio.volume = targetVolume;
+      return false;
+    }
+
+    if (canFadeIn) {
+      fadeMusicVolume(0, targetVolume, musicFadeInMs);
+    }
+    updatePlayButtonLabel();
+    return true;
+  }
+
+  function pauseMusicWithFadeOut() {
+    if (!musicAudio || musicAudio.paused) {
+      return;
+    }
+
+    const targetVolume = getDesiredMusicVolume();
+    const currentVolume = clampVolume(musicAudio.volume);
+    const canFadeOut = !musicAudio.muted && currentVolume > 0.001 && !reduceMotionQuery.matches;
+
+    if (!canFadeOut) {
+      musicAudio.pause();
+      musicAudio.volume = targetVolume;
+      updatePlayButtonLabel();
+      return;
+    }
+
+    fadeMusicVolume(currentVolume, 0, musicFadeOutMs, () => {
+      if (!musicAudio) {
+        return;
+      }
+      musicAudio.pause();
+      musicAudio.volume = targetVolume;
+      updatePlayButtonLabel();
+    });
+  }
+
+  document.addEventListener("site:music-pause-fadeout", () => {
+    pauseMusicWithFadeOut();
+  });
 
   function resolveAssetPath(pathOrUrl) {
     if (!pathOrUrl || typeof pathOrUrl !== "string") {
@@ -617,9 +747,10 @@
       }
 
       if (Number.isFinite(savedState.volume) && savedState.volume >= 0 && savedState.volume <= 1) {
-        musicAudio.volume = savedState.volume;
+        musicDesiredVolume = clampVolume(savedState.volume);
+        musicAudio.volume = musicDesiredVolume;
         if (musicVolume) {
-          musicVolume.value = String(savedState.volume);
+          musicVolume.value = String(musicDesiredVolume);
         }
       }
       musicAudio.muted = Boolean(savedState.muted);
@@ -725,26 +856,39 @@
       return;
     }
 
-    musicAudio.play().then(() => {
-      pendingAutoplay = false;
-      pendingAutoplayUrl = "";
-      updatePlayButtonLabel();
-    }).catch(() => {
+    playMusicWithFadeIn().then((played) => {
+      if (played) {
+        pendingAutoplay = false;
+        pendingAutoplayUrl = "";
+        updatePlayButtonLabel();
+        return;
+      }
       const wasMuted = musicAudio.muted;
       musicAudio.muted = true;
-      musicAudio.play().then(() => {
+      playMusicWithFadeIn().then((playedMuted) => {
+        if (!playedMuted) {
+          musicAudio.muted = wasMuted;
+          return;
+        }
         pendingAutoplay = false;
         pendingAutoplayUrl = "";
         if (!wasMuted) {
           setTimeout(() => {
+            if (!musicAudio || musicAudio.paused) {
+              return;
+            }
             musicAudio.muted = false;
+            const targetVolume = getDesiredMusicVolume();
+            if (targetVolume > 0.001 && !reduceMotionQuery.matches) {
+              musicAudio.volume = 0;
+              fadeMusicVolume(0, targetVolume, musicFadeInMs);
+            } else {
+              musicAudio.volume = targetVolume;
+            }
             updateMuteButtonLabel();
           }, 140);
         }
         updatePlayButtonLabel();
-      }).catch(() => {
-        musicAudio.muted = wasMuted;
-        // keep pending flag; next user gesture or canplay can retry
       });
     });
   }
@@ -1082,6 +1226,7 @@
       ["#resources-filter-all", t.resourcesFilterAll],
       ["#resources-filter-wii", t.resourcesFilterWii],
       ["#resources-filter-wiiu", t.resourcesFilterWiiU],
+      ["#resources-filter-other", t.resourcesFilterOther],
       ["#resources-catalog-title", t.resourcesCatalogTitle],
       ["#resources-card1-badge", t.resourcesCard1Badge],
       ["#resources-card1-title", t.resourcesCard1Title],
@@ -1091,6 +1236,27 @@
       ["#resources-card2-title", t.resourcesCard2Title],
       ["#resources-card2-by", t.resourcesCard2By],
       ["#resources-card2-desc", t.resourcesCard2Desc],
+      ["#resources-card3-badge", t.resourcesCard3Badge],
+      ["#resources-card3-title", t.resourcesCard3Title],
+      ["#resources-card3-by", t.resourcesCard3By],
+      ["#resources-card3-desc", t.resourcesCard3Desc],
+      ["#ninconvert-title", t.ninconvertTitle],
+      ["#ninconvert-subtitle", t.ninconvertSubtitle],
+      ["#ninconvert-meta", t.ninconvertMeta],
+      ["#nin-file-label", t.ninFileLabel],
+      ["#nin-format-label", t.ninFormatLabel],
+      ["#nin-loop-toggle-label", t.ninLoopToggleLabel],
+      ["#nin-loop-start-label", t.ninLoopStartLabel],
+      ["#nin-loop-end-label", t.ninLoopEndLabel],
+      ["#nin-source-preview-label", t.ninSourcePreviewLabel],
+      ["#nin-set-loop-start", t.ninSetLoopStart],
+      ["#nin-set-loop-end", t.ninSetLoopEnd],
+      ["#nin-loop-preview-btn", t.ninLoopPreviewOff],
+      ["#nin-api-label", t.ninApiLabel],
+      ["#nin-status", t.ninStatusIdle],
+      ["#ninconvert-note", t.ninconvertNote],
+      ["#nin-oss-title", t.ninOssTitle],
+      ["#nin-oss-subtitle", t.ninOssSubtitle],
       ["#resources-link-g", t.g],
       ["#resources-link-d", t.d],
       ["#resources-link-m", t.m],
@@ -1370,14 +1536,10 @@
 
   if (musicPlayBtn && musicAudio) {
     musicPlayBtn.addEventListener("click", async () => {
-      try {
-        if (musicAudio.paused) {
-          await musicAudio.play();
-        } else {
-          musicAudio.pause();
-        }
-      } catch (_) {
-        // ignore autoplay / play promise errors
+      if (musicAudio.paused) {
+        await playMusicWithFadeIn();
+      } else {
+        pauseMusicWithFadeOut();
       }
       updatePlayButtonLabel();
     });
@@ -1407,11 +1569,13 @@
     musicVolume.addEventListener("input", () => {
       const value = Number(musicVolume.value);
       if (Number.isFinite(value)) {
-        musicAudio.volume = value;
+        musicDesiredVolume = clampVolume(value);
+        stopMusicVolumeFade();
+        musicAudio.volume = musicDesiredVolume;
         if (value > 0 && musicAudio.muted) {
           musicAudio.muted = false;
         }
-        localStorage.setItem(musicVolumeStorageKey, String(value));
+        localStorage.setItem(musicVolumeStorageKey, String(musicDesiredVolume));
         localStorage.setItem(musicMuteStorageKey, musicAudio.muted ? "1" : "0");
         updateMuteButtonLabel();
       }
@@ -1437,10 +1601,13 @@
   if (musicAudio) {
     const savedVolume = Number(localStorage.getItem(musicVolumeStorageKey));
     if (Number.isFinite(savedVolume) && savedVolume >= 0 && savedVolume <= 1) {
-      musicAudio.volume = savedVolume;
+      musicDesiredVolume = clampVolume(savedVolume);
+      musicAudio.volume = musicDesiredVolume;
       if (musicVolume) {
-        musicVolume.value = String(savedVolume);
+        musicVolume.value = String(musicDesiredVolume);
       }
+    } else {
+      musicDesiredVolume = clampVolume(musicAudio.volume);
     }
     musicAudio.muted = localStorage.getItem(musicMuteStorageKey) === "1";
     updateMuteButtonLabel();

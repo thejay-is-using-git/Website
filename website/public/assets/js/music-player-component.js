@@ -4,7 +4,7 @@
     return;
   }
 
-  const isNestedPage = /\/(resources|credit)(\/|$)/i.test(window.location.pathname || "");
+  const isNestedPage = /\/(resources|credit|ninconvert)(\/|$)/i.test(window.location.pathname || "");
   const assetRoot = isNestedPage ? "../assets/" : "assets/";
   const placeholderCover = `${assetRoot}images/album-placeholder.svg`;
   const defaultTrack = `${assetRoot}Musics/Mr.%20Blue%20Sky.mp3`;

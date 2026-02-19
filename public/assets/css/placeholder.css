@@ -35,6 +35,13 @@
       #d9b739 32px,
       #d9b739 64px
     );
+  background-size: cover;
+  background-position: center;
+}
+
+.placeholder-barrier.has-image {
+  background-image: var(--placeholder-barrier-image);
+  background-repeat: no-repeat;
 }
 
 #placeholder-title {

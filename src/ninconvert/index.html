@@ -22,7 +22,7 @@
   <link rel="icon" type="image/png" href="../assets/images/favicon.png?v=2">
   <link rel="stylesheet" href="../assets/css/base.css?v=20260219b">
   <link rel="stylesheet" href="../assets/css/starnight.css?v=20260218d">
-  <link rel="stylesheet" href="../assets/css/ninconvert.css?v=20260219j">
+  <link rel="stylesheet" href="../assets/css/ninconvert.css?v=20260219m">
   <script src="../assets/js/embed-fallback.js?v=20260218d"></script>
 </head>
 <body data-page="ninconvert">
@@ -147,6 +147,19 @@
 
         <div class="nin-actions">
           <button class="filter-chip active" id="nin-convert-btn" type="submit">Convert</button>
+        </div>
+
+        <div class="nin-progress-wrap" id="nin-progress-wrap" hidden>
+          <div class="nin-progress-head">
+            <span id="nin-progress-label">Preparation...</span>
+            <span id="nin-progress-value">0%</span>
+          </div>
+          <div class="nin-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progression de conversion">
+            <div class="nin-progress-fill" id="nin-progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="nin-download-wrap">
           <a id="nin-download" class="nin-download" href="#" hidden>Download</a>
         </div>
       </form>
@@ -162,158 +175,56 @@
       <div class="nin-oss-sheet">
         <section class="nin-oss-group">
           <h3 class="nin-oss-group-title" id="nin-oss-used-now">Used now</h3>
-          <p><a id="nin-oss-ref-link" href="https://kazuki-4ys.github.io/web_apps/mu-wave/#" target="_blank" rel="noopener noreferrer">mu-wave OSS references</a></p>
+          <p><a id="nin-oss-ref-link" href="https://github.com/The-CTRL-J/Website/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Notices completes et licences</a></p>
 
           <details class="nin-oss-entry" open>
-            <summary><a href="https://github.com/Thealexbarney/DspTool" target="_blank" rel="noopener noreferrer">DspTool</a> - MIT</summary>
-            <pre class="nin-license-text">MIT License
+            <summary>NinConvert backend runtime (Node.js)</summary>
+            <pre class="nin-license-text">Dependances npm utilisees en execution:
+- express (MIT)
+- cors (MIT)
+- multer (MIT)
+- dotenv (BSD-2-Clause)
+- ffmpeg-static (GPL-3.0-or-later, binaire ffmpeg embarque)
 
-Copyright (c) 2017 Alex Barney
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.</pre>
+Le detail des textes de licence est dans:
+THIRD_PARTY_NOTICES.md et package-lock.json.</pre>
           </details>
 
           <details class="nin-oss-entry">
-            <summary><a href="https://xiph.org/downloads/" target="_blank" rel="noopener noreferrer">libOgg</a> - BSD-style</summary>
-            <pre class="nin-license-text">Ogg - Free Open Media Container Format
-Copyright (c) 2002 Xiph.org Foundation
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-- Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-
-- Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-
-- Neither the name of the Xiph.org Foundation nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE FOUNDATION
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</pre>
+            <summary><a href="https://github.com/Thealexbarney/VGAudio" target="_blank" rel="noopener noreferrer">VGAudioCli</a> - MIT</summary>
+            <pre class="nin-license-text">Utilise pour encoder BRSTM / BCSTM / BFSTM.
+Les points de loop sont passes via arguments:
+-l start-end</pre>
           </details>
 
           <details class="nin-oss-entry">
-            <summary><a href="https://xiph.org/downloads/" target="_blank" rel="noopener noreferrer">libVorbis</a> - BSD-style</summary>
-            <pre class="nin-license-text">Vorbis - Free Open Audio Codec
-Copyright (c) 2002-2018 Xiph.org Foundation
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-- Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-
-- Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-
-- Neither the name of the Xiph.org Foundation nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE FOUNDATION
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</pre>
-          </details>
-
-          <details class="nin-oss-entry">
-            <summary>ogg decode example - BSD-style</summary>
-            <pre class="nin-license-text">Copyright (c) 2008 Francisco Munoz 'Hermes' (www.elotrolado.net)
-All rights reserved.
-
-Proper (standard) vorbis usage by Tantric, 2009
-Threading modifications/corrections by Tantric, 2009
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-- Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.
-- Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
-- The names of the contributors may not be used to endorse or promote products
-derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</pre>
+            <summary><a href="https://ffmpeg.org/" target="_blank" rel="noopener noreferrer">FFmpeg (via ffmpeg-static)</a></summary>
+            <pre class="nin-license-text">Utilise pour normaliser toutes les sources en WAV 48kHz stereo
+avant conversion Nintendo.</pre>
           </details>
         </section>
 
         <section class="nin-oss-group">
-          <h3 class="nin-oss-group-title" id="nin-oss-needed-backend">Needed for backend</h3>
+          <h3 class="nin-oss-group-title" id="nin-oss-needed-backend">Outils locaux pour NinConvert</h3>
 
           <details class="nin-oss-entry">
-            <summary><a href="https://github.com/ic-scm/openrevolution" target="_blank" rel="noopener noreferrer">OpenRevolution</a> - GPL-3.0</summary>
-            <pre class="nin-license-text">OpenRevolution is planned for backend conversion support.
-License: GNU General Public License v3.0 (GPL-3.0).
-
-When used in your backend, include the full GPL-3.0 license text
-in your repository and distribution, and respect GPL source obligations.</pre>
+            <summary><a href="https://github.com/vgmstream/vgmstream" target="_blank" rel="noopener noreferrer">vgmstream-cli</a> - mixed licenses</summary>
+            <pre class="nin-license-text">Utilise pour verifier metadata/loop des sorties Nintendo.
+Ce n'est pas l'encodeur principal dans ce projet.</pre>
           </details>
 
           <details class="nin-oss-entry">
-            <summary><a href="https://github.com/vgmstream/vgmstream" target="_blank" rel="noopener noreferrer">vgmstream</a> - mixed licenses</summary>
-            <pre class="nin-license-text">vgmstream is a planned backend component for game audio formats.
-License model: mixed per-source/per-library (not a single MIT/BSD file).
-
-Before production use, review upstream LICENSE files and each bundled
-dependency to generate a complete attribution/compliance bundle.</pre>
+            <summary>ctr_WaveConverter32 - Nintendo SDK tool</summary>
+            <pre class="nin-license-text">Utilise pour encoder BCWAV.
+Loop transmis via:
+--loopStart N --loopEnd M</pre>
           </details>
 
           <details class="nin-oss-entry">
-            <summary><a href="https://github.com/Thealexbarney/VGAudio" target="_blank" rel="noopener noreferrer">VGAudio</a> - MIT</summary>
-            <pre class="nin-license-text">VGAudio is planned for backend encoding/decoding helpers.
-License: MIT.
-
-Include the MIT copyright notice and license text in backend distribution.</pre>
+            <summary>NW4F_WaveConverter - Nintendo SDK tool</summary>
+            <pre class="nin-license-text">Utilise pour encoder BFWAV.
+Loop transmis via:
+--loopStart N --loopEnd M</pre>
           </details>
         </section>
       </div>
@@ -324,12 +235,12 @@ Include the MIT copyright notice and license text in backend distribution.</pre>
     </footer>
   </main>
 
-  <script src="../assets/js/translations.js?v=20260219f"></script>
+  <script src="../assets/js/translations.js?v=20260219g"></script>
   <script src="../assets/Musics/playlist.js?v=20260219b"></script>
   <script src="../assets/js/music-player-component.js?v=20260219a"></script>
   <script src="../assets/js/resources-filters.js?v=20260219f"></script>
   <script src="../assets/js/site.js?v=20260219h"></script>
-  <script src="../assets/js/ninconvert.js?v=20260219g"></script>
+  <script src="../assets/js/ninconvert.js?v=20260219h"></script>
 </body>
 </html>
 

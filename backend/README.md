@@ -8,6 +8,7 @@ Backend API for `src/ninconvert/index.html`.
 - `POST /convert`: upload + convert endpoint (multipart/form-data).
 - Input support: `.mp3`, `.wav`, `.ogg`.
 - Loop fields accepted and validated (`loopEnabled`, `loopStart`, `loopEnd`).
+- If loop is enabled, loop points are injected in the normalized WAV (`smpl` chunk) before Nintendo conversion.
 - Nintendo output generation is done only by configured encoder commands (`NINCONVERT_<FORMAT>_CMD`).
 - If no encoder command is configured for requested output format, API returns `501` (no fake WAV fallback).
 
@@ -54,3 +55,5 @@ Template placeholders for command values:
 - `{loopEnabled}` `0|1`
 - `{loopStart}` samples
 - `{loopEnd}` samples
+- `{loopVgaudioArgs}` auto-generated args for VGAudio (`-l start-end` or `--no-loop`)
+- `{loopNintendoWaveArgs}` auto-generated args for Nintendo wave tools (`--loopStart N --loopEnd M` or empty)

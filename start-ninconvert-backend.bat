@@ -30,7 +30,11 @@ echo URL API: http://localhost:8787/
 echo Health : http://localhost:8787/health
 echo Arret: Ctrl + C
 echo.
-call npm run dev
+for /f "tokens=5" %%P in ('netstat -ano ^| findstr ":8787" ^| findstr "LISTENING"') do (
+  echo Port 8787 deja utilise (PID %%P), arret de l'ancien process...
+  taskkill /PID %%P /F >nul 2>nul
+)
+call npm run start
 if errorlevel 1 goto dev_fail
 echo.
 echo Le backend s'est arrete.

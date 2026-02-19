@@ -104,6 +104,9 @@ app.post("/convert", upload.single("audio"), async (req, res) => {
     cleanupTargets.push(sourcePath, normalizedWavPath);
 
     await normalizeInputToWav(sourcePath, normalizedWavPath);
+    if (loopEnabled) {
+      await applyLoopMetadataToWav(normalizedWavPath, loopStart, loopEnd);
+    }
 
     const encoderCommand = ENCODER_COMMANDS[targetFormat];
     if (!encoderCommand) {
@@ -232,9 +235,126 @@ async function normalizeInputToWav(inputPath, outputPath) {
   ]);
 }
 
+async function applyLoopMetadataToWav(wavPath, loopStart, loopEnd) {
+  const buffer = await fs.readFile(wavPath);
+  if (buffer.length < 12 || buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WAVE") {
+    throw new Error("Invalid WAV file (RIFF/WAVE header missing)");
+  }
+
+  const chunks = [];
+  let offset = 12;
+  let sampleRate = 0;
+  let blockAlign = 0;
+  let totalSamples = 0;
+
+  while (offset + 8 <= buffer.length) {
+    const chunkId = buffer.toString("ascii", offset, offset + 4);
+    const chunkSize = buffer.readUInt32LE(offset + 4);
+    const chunkDataStart = offset + 8;
+    const chunkDataEnd = chunkDataStart + chunkSize;
+    const nextOffset = chunkDataEnd + (chunkSize % 2);
+
+    if (chunkDataEnd > buffer.length || nextOffset > buffer.length) {
+      throw new Error("Invalid WAV file (corrupted chunk layout)");
+    }
+
+    if (chunkId === "fmt ") {
+      if (chunkSize < 16) {
+        throw new Error("Invalid WAV file (fmt chunk too small)");
+      }
+      sampleRate = buffer.readUInt32LE(chunkDataStart + 4);
+      blockAlign = buffer.readUInt16LE(chunkDataStart + 12);
+    }
+
+    if (chunkId === "data") {
+      totalSamples = blockAlign > 0
+        ? Math.floor(chunkSize / blockAlign)
+        : 0;
+    }
+
+    chunks.push({
+      id: chunkId,
+      start: offset,
+      end: nextOffset
+    });
+    offset = nextOffset;
+  }
+
+  if (!sampleRate || !blockAlign || totalSamples <= 0) {
+    throw new Error("Invalid WAV file (missing fmt/data info)");
+  }
+
+  const maxSample = Math.max(0, totalSamples - 1);
+  const loopStartSafe = Math.max(0, Math.min(maxSample, Math.floor(loopStart)));
+  const loopEndSafe = Math.max(0, Math.min(maxSample, Math.floor(loopEnd)));
+
+  if (loopEndSafe <= loopStartSafe) {
+    throw new Error(`Invalid loop range for WAV metadata: ${loopStartSafe} -> ${loopEndSafe}`);
+  }
+
+  const smplChunk = buildSmplChunk(sampleRate, loopStartSafe, loopEndSafe);
+  const rebuiltParts = [buffer.slice(0, 12)];
+
+  for (const chunk of chunks) {
+    if (chunk.id === "smpl") {
+      continue;
+    }
+    rebuiltParts.push(buffer.slice(chunk.start, chunk.end));
+  }
+
+  rebuiltParts.push(smplChunk);
+
+  const rebuilt = Buffer.concat(rebuiltParts);
+  rebuilt.writeUInt32LE(rebuilt.length - 8, 4);
+  await fs.writeFile(wavPath, rebuilt);
+}
+
+function buildSmplChunk(sampleRate, loopStart, loopEnd) {
+  const loopsCount = 1;
+  const smplPayloadSize = 36 + loopsCount * 24;
+  const totalSize = 8 + smplPayloadSize;
+  const chunk = Buffer.alloc(totalSize);
+
+  chunk.write("smpl", 0, 4, "ascii");
+  chunk.writeUInt32LE(smplPayloadSize, 4);
+
+  let offset = 8;
+  chunk.writeUInt32LE(0, offset); offset += 4; // manufacturer
+  chunk.writeUInt32LE(0, offset); offset += 4; // product
+  chunk.writeUInt32LE(Math.max(1, Math.round(1_000_000_000 / sampleRate)), offset); offset += 4; // samplePeriod
+  chunk.writeUInt32LE(60, offset); offset += 4; // midiUnityNote
+  chunk.writeUInt32LE(0, offset); offset += 4; // midiPitchFraction
+  chunk.writeUInt32LE(0, offset); offset += 4; // smpteFormat
+  chunk.writeUInt32LE(0, offset); offset += 4; // smpteOffset
+  chunk.writeUInt32LE(loopsCount, offset); offset += 4; // numSampleLoops
+  chunk.writeUInt32LE(0, offset); offset += 4; // samplerData
+
+  chunk.writeUInt32LE(0, offset); offset += 4; // cuePointId
+  chunk.writeUInt32LE(0, offset); offset += 4; // type (forward)
+  chunk.writeUInt32LE(loopStart, offset); offset += 4; // start
+  chunk.writeUInt32LE(loopEnd, offset); offset += 4; // end (inclusive)
+  chunk.writeUInt32LE(0, offset); offset += 4; // fraction
+  chunk.writeUInt32LE(0, offset); // playCount (0 = infinite)
+
+  return chunk;
+}
+
 async function runTemplateCommand(template, values) {
-  const rendered = template.replace(/\{(input|output|format|loopEnabled|loopStart|loopEnd)\}/g, (_match, key) => {
-    const raw = values[key];
+  const loopEnabled = String(values.loopEnabled) === "1";
+  const loopStart = Math.max(0, Number.parseInt(String(values.loopStart ?? "0"), 10) || 0);
+  const loopEnd = Math.max(loopStart + 1, Number.parseInt(String(values.loopEnd ?? "0"), 10) || (loopStart + 1));
+
+  const derivedValues = {
+    ...values,
+    loopVgaudioArgs: loopEnabled ? `-l ${loopStart}-${loopEnd}` : "--no-loop",
+    loopNintendoWaveArgs: loopEnabled ? `--loopStart ${loopStart} --loopEnd ${loopEnd}` : ""
+  };
+
+  const rendered = template.replace(/\{(input|output|format|loopEnabled|loopStart|loopEnd|loopVgaudioArgs|loopNintendoWaveArgs)\}/g, (_match, key) => {
+    const raw = derivedValues[key];
+    if (key === "loopVgaudioArgs" || key === "loopNintendoWaveArgs") {
+      return String(raw || "");
+    }
     if (key === "input" || key === "output") {
       return shellQuote(raw);
     }

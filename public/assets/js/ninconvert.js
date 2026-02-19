@@ -22,6 +22,11 @@
   const convertBtn = document.getElementById("nin-convert-btn");
   const statusNode = document.getElementById("nin-status");
   const downloadLink = document.getElementById("nin-download");
+  const progressWrap = document.getElementById("nin-progress-wrap");
+  const progressLabel = document.getElementById("nin-progress-label");
+  const progressValue = document.getElementById("nin-progress-value");
+  const progressFill = document.getElementById("nin-progress-fill");
+  const progressTrack = progressWrap ? progressWrap.querySelector(".nin-progress-track") : null;
 
   const storageKey = "ninconvert-api-url";
   const translations = window.SITE_TRANSLATIONS || {};
@@ -29,6 +34,7 @@
   let sourceSampleRate = 48000;
   let loopPreviewEnabled = false;
   let audioContext = null;
+  let selectedInputFile = null;
   const allowedInputExtensions = new Set([
     "wav",
     "mp3",
@@ -82,6 +88,35 @@
     statusNode.style.color = isError ? "#ff9ca9" : "";
   }
 
+  function setProgressVisible(visible) {
+    if (!progressWrap) {
+      return;
+    }
+    progressWrap.hidden = !visible;
+  }
+
+  function setProgress(percent, labelText) {
+    const value = Math.max(0, Math.min(100, Math.round(percent)));
+
+    if (progressFill) {
+      progressFill.style.width = `${value}%`;
+    }
+    if (progressValue) {
+      progressValue.textContent = `${value}%`;
+    }
+    if (progressLabel && labelText) {
+      progressLabel.textContent = labelText;
+    }
+    if (progressTrack) {
+      progressTrack.setAttribute("aria-valuenow", String(value));
+    }
+  }
+
+  function resetProgress() {
+    setProgressVisible(false);
+    setProgress(0, tr("ninProgressPrepare", "Preparation du fichier..."));
+  }
+
   function requestBackgroundMusicFadeOut() {
     document.dispatchEvent(new CustomEvent("site:music-pause-fadeout", {
       detail: { source: "ninconvert-source" }
@@ -103,6 +138,63 @@
 
   function normalizeApiBase(url) {
     return (url || "").trim().replace(/\/+$/, "");
+  }
+
+  function convertViaXhr(url, formData, onUploadProgress, onUploadDone) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", url, true);
+      xhr.responseType = "blob";
+
+      if (xhr.upload) {
+        xhr.upload.onprogress = (event) => {
+          if (!onUploadProgress) {
+            return;
+          }
+          if (event.lengthComputable && event.total > 0) {
+            onUploadProgress(event.loaded / event.total);
+          } else {
+            onUploadProgress(null);
+          }
+        };
+        xhr.upload.onload = () => {
+          if (onUploadDone) {
+            onUploadDone();
+          }
+        };
+      }
+
+      xhr.onerror = () => {
+        reject(new Error("Network error"));
+      };
+
+      xhr.onload = async () => {
+        const status = xhr.status;
+        const responseBlob = xhr.response instanceof Blob ? xhr.response : new Blob([]);
+        const contentDisposition = xhr.getResponseHeader("content-disposition") || "";
+
+        if (status >= 200 && status < 300) {
+          resolve({
+            blob: responseBlob,
+            contentDisposition
+          });
+          return;
+        }
+
+        let errorMessage = `HTTP ${status}`;
+        try {
+          const text = await responseBlob.text();
+          if (text) {
+            errorMessage = text;
+          }
+        } catch (_) {
+          // Keep fallback error.
+        }
+        reject(new Error(errorMessage));
+      };
+
+      xhr.send(formData);
+    });
   }
 
   function guessOutputName(inputName, format) {
@@ -238,6 +330,7 @@
     }
 
     if (!file) {
+      selectedInputFile = null;
       if (sourceObjectUrl) {
         URL.revokeObjectURL(sourceObjectUrl);
         sourceObjectUrl = "";
@@ -250,9 +343,11 @@
     }
 
     if (!isSupportedInputFile(file)) {
+      selectedInputFile = null;
       setStatus(tr("ninStatusUnsupportedInput", "Format non supporte. Utilise WAV, MP3 ou OGG."), true);
       return;
     }
+    selectedInputFile = file;
 
     if (sourceObjectUrl) {
       URL.revokeObjectURL(sourceObjectUrl);
@@ -305,9 +400,16 @@
         return;
       }
 
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      fileInput.files = dataTransfer.files;
+      // Best effort sync with the native input when browser permits it.
+      try {
+        if (typeof DataTransfer !== "undefined") {
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          fileInput.files = dataTransfer.files;
+        }
+      } catch (_) {
+        // Ignore: selectedInputFile keeps drag & drop working anyway.
+      }
       await applySelectedFile(file);
     });
 
@@ -425,13 +527,15 @@
   setLoopPreviewButtonState();
   updatePreviewMeta();
   updateCustomPlayerUi();
+  resetProgress();
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     downloadLink.hidden = true;
     downloadLink.removeAttribute("href");
 
-    const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+    const fileFromInput = fileInput && fileInput.files ? fileInput.files[0] : null;
+    const file = selectedInputFile || fileFromInput || null;
     if (!file) {
       setStatus(tr("ninStatusPickFileBeforeConvert", "Choisis un fichier audio avant de convertir."), true);
       return;
@@ -459,22 +563,48 @@
     formData.append("loopEnd", loopEndInput && loopEndInput.value ? loopEndInput.value : "0");
 
     setBusy(true);
+    setProgressVisible(true);
+    setProgress(4, tr("ninProgressPrepare", "Preparation du fichier..."));
     setStatus(tr("ninStatusConverting", "Conversion en cours..."));
 
-    try {
-      const response = await fetch(`${apiBase}/convert`, {
-        method: "POST",
-        body: formData
-      });
+    let encodeProgress = 60;
+    let encodeTicker = null;
 
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || `HTTP ${response.status}`);
+    const startEncodeTicker = () => {
+      if (encodeTicker) {
+        return;
       }
+      setProgress(60, tr("ninProgressEncoding", "Encodage Nintendo en cours..."));
+      encodeTicker = window.setInterval(() => {
+        encodeProgress = Math.min(94, encodeProgress + Math.random() * 2.2);
+        setProgress(encodeProgress, tr("ninProgressEncoding", "Encodage Nintendo en cours..."));
+      }, 260);
+    };
 
-      const blob = await response.blob();
+    try {
+      const result = await convertViaXhr(
+        `${apiBase}/convert`,
+        formData,
+        (ratio) => {
+          if (typeof ratio === "number") {
+            const uploadPct = 8 + ratio * 44;
+            setProgress(uploadPct, tr("ninProgressUpload", "Upload du fichier..."));
+          }
+        },
+        () => {
+          startEncodeTicker();
+        }
+      );
+
+      if (encodeTicker) {
+        window.clearInterval(encodeTicker);
+        encodeTicker = null;
+      }
+      setProgress(98, tr("ninProgressFinalize", "Finalisation du fichier converti..."));
+
+      const blob = result.blob;
       const fallbackName = guessOutputName(file.name, format);
-      const contentDisposition = response.headers.get("content-disposition") || "";
+      const contentDisposition = result.contentDisposition || "";
       const match = contentDisposition.match(/filename=\"?([^\"]+)\"?/i);
       const outputName = match && match[1] ? match[1] : fallbackName;
       const objectUrl = URL.createObjectURL(blob);
@@ -482,8 +612,13 @@
       downloadLink.href = objectUrl;
       downloadLink.download = outputName;
       downloadLink.hidden = false;
+      setProgress(100, tr("ninProgressDone", "Conversion terminee"));
       setStatus(tr("ninStatusDone", "Conversion terminee. Clique sur Download."));
     } catch (error) {
+      if (encodeTicker) {
+        window.clearInterval(encodeTicker);
+        encodeTicker = null;
+      }
       setStatus(`${tr("ninStatusErrorPrefix", "Erreur conversion:")} ${error.message || tr("ninStatusUnknownError", "unknown error")}`, true);
     } finally {
       setBusy(false);

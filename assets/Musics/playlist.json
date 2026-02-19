@@ -1,0 +1,34 @@
+﻿{
+  "tracks": [
+    {
+      "file": "Mr. Blue Sky.mp3",
+      "title": "Mr. Blue Sky",
+      "artist": "Electric Light Orchestra",
+      "cover": "assets/Musics/covers/mr-blue-sky.jpg"
+    },
+    {
+      "file": "Kubbi _ Overworld.mp3",
+      "title": "Kubbi - Overworld",
+      "artist": "Kubbi",
+      "cover": "assets/images/album-placeholder.svg"
+    },
+    {
+      "file": "PlasticSixwall.mp3",
+      "title": "PlasticSixwall",
+      "artist": "CTRL_J",
+      "cover": "assets/images/album-placeholder.svg"
+    },
+    {
+      "file": "EEYUH 2_audio only.mp3",
+      "title": "EEYUH 2",
+      "artist": "HR",
+      "cover": "assets/Musics/covers/FLUXXKLUB!.jpg"
+    },
+    {
+      "file": "Sherbet Lobby - bxnji.mp3",
+      "title": "Sherbet Lobby",
+      "artist": "bxnji",
+      "cover": "assets/images/album-placeholder.svg"
+    }
+  ]
+}

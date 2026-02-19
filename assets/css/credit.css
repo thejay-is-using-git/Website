@@ -1,0 +1,33 @@
+.credit-main {
+  display: grid;
+  gap: 12px;
+}
+
+.credit-main p:last-child {
+  margin-bottom: 0;
+}
+
+.credit-license-card {
+  display: grid;
+  gap: 8px;
+}
+
+.credit-license-title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.credit-license-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: var(--text);
+}
+
+.credit-license-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}

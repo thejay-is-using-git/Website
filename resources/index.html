@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CTRL_J - Resources</title>
+  <meta name="description" content="Retrouve les ressources de CTRL_J: liens utiles, publications, modding et communautes.">
+  <link rel="canonical" href="https://the-ctrl-j.github.io/Website/resources/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CTRL_J Website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="CTRL_J - Resources">
+  <meta property="og:description" content="Retrouve les ressources de CTRL_J: liens utiles, publications, modding et communautes.">
+  <meta property="og:url" content="https://the-ctrl-j.github.io/Website/resources/">
+  <meta property="og:image" content="https://the-ctrl-j.github.io/Website/assets/images/CTRL_J.png">
+  <meta property="og:image:alt" content="Photo de profil CTRL_J">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CTRL_J - Resources">
+  <meta name="twitter:description" content="Retrouve les ressources de CTRL_J: liens utiles, publications, modding et communautes.">
+  <meta name="twitter:image" content="https://the-ctrl-j.github.io/Website/assets/images/CTRL_J.png">
+  <script src="../assets/js/theme-bootstrap.js?v=20260219a"></script>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png?v=2">
+  <link rel="stylesheet" href="../assets/css/base.css?v=20260219a">
+  <link rel="stylesheet" href="../assets/css/starnight.css?v=20260218d">
+  <link rel="stylesheet" href="../assets/css/resources.css?v=20260219d">
+  <script src="../assets/js/embed-fallback.js?v=20260218d"></script>
+</head>
+<body data-page="ressources">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand" aria-live="polite">
+        <img class="brand-pic" src="../assets/images/CTRL_J.png" alt="Photo de profil CTRL_J">
+        <span class="brand-title" id="brand-title">CTRL_J/Resources</span><span class="cursor">|</span>
+      </div>
+
+      <nav class="menu" aria-label="Navigation principale">
+        <a id="nav-home" href="../">Accueil</a>
+        <a id="nav-res" href="./" class="active">Ressources</a>
+        <a id="nav-credit" href="../credit/">Credit</a>
+      </nav>
+
+      <div class="topbar-right">
+        <div class="topbar-tools">
+          <div id="music-player-slot"></div>
+
+          <div class="tool-pop">
+            <button class="settings-btn" id="settings-btn" type="button" aria-expanded="false" aria-controls="settings-panel" aria-label="Parametres">
+              <img class="ui-icon" src="../assets/images/icons/settings.svg" alt="" aria-hidden="true">
+            </button>
+            <div class="settings-panel" id="settings-panel" aria-hidden="true">
+              <div class="setting-row">
+                <label for="theme-select" id="theme-label">Theme</label>
+                <select id="theme-select">
+                  <option value="system" id="theme-system-option">Windows</option>
+                  <option value="dark" id="theme-dark-option">Dark</option>
+                  <option value="light" id="theme-light-option">Light</option>
+                  <option value="starnight" id="theme-starnight-option">Starnight</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <label for="lang-select" id="lang-label">Language</label>
+                <select id="lang-select">
+                  <option value="system" id="lang-system-option">Windows</option>
+                  <option value="fr" id="lang-fr-option">Francais</option>
+                  <option value="en" id="lang-en-option">English</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="dev-banner" aria-live="polite">
+    <p id="dev-banner-text">Ce site est encore en developpement &#9888; merci de votre comprehension</p>
+  </section>
+
+  <main class="page">
+    <section class="section-panel resources-main">
+      <div class="resources-head">
+        <h1 class="resources-title" id="resources-main-title">Ressources</h1>
+        <p class="resources-subtitle" id="resources-main-subtitle">Liste statique des mods de la communaute de CTRL_J.</p>
+      </div>
+
+      <div class="resources-catalog">
+        <div class="resources-filters" aria-label="Filtres de categories">
+          <button class="filter-chip active" type="button" id="resources-filter-all" data-filter="all">Tous</button>
+          <button class="filter-chip" type="button" id="resources-filter-wii" data-filter="wii">Wii</button>
+          <button class="filter-chip" type="button" id="resources-filter-wiiu" data-filter="wiiu">Wii U</button>
+          <button class="filter-chip" type="button" id="resources-filter-other" data-filter="other">Other Tool</button>
+        </div>
+
+        <div class="catalog-head">
+          <h2 class="catalog-title" id="resources-catalog-title">Toutes creations</h2>
+          <label class="resources-search-wrap" for="resources-search">
+            <input
+              id="resources-search"
+              class="resources-search"
+              type="search"
+              placeholder="Rechercher un projet..."
+              aria-label="Rechercher un projet"
+            >
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <div class="resource-card-grid">
+      <article class="resource-card" aria-label="Mod Wii U Google Translate" data-platform="wiiu">
+        <img class="resource-card-cover" src="../assets/images/Background.jpg" alt="Apercu Wii U Google Translate">
+        <div class="resource-card-body">
+          <span class="resource-badge" id="resources-card1-badge">Wii U - Tool</span>
+          <h3 class="resource-card-title" id="resources-card1-title">Wii U Google Translate</h3>
+          <p class="resource-card-author"><span id="resources-card1-by">Publie par</span> <span class="resource-author-name">CTRL_J</span></p>
+          <p class="resource-card-desc" id="resources-card1-desc">Patch utilitaire oriente traduction pour workflows de modding Wii U.</p>
+        </div>
+      </article>
+
+      <article class="resource-card" aria-label="Mod Wii Riivolution" data-platform="wii">
+        <img class="resource-card-cover" src="../assets/Musics/covers/FLUXXKLUB!.jpg" alt="Apercu Wii Riivolution">
+        <div class="resource-card-body">
+          <span class="resource-badge" id="resources-card2-badge">Wii - Mod Loader</span>
+          <h3 class="resource-card-title" id="resources-card2-title">Wii Riivolution</h3>
+          <p class="resource-card-author"><span id="resources-card2-by">Publie par</span> <span class="resource-author-name">CTRL_J</span></p>
+          <p class="resource-card-desc" id="resources-card2-desc">Pack de fichiers et reglages pour mods Wii via Riivolution.</p>
+        </div>
+      </article>
+
+      <article class="resource-card" aria-label="NinConvert web tool" data-platform="other" data-link="../ninconvert/">
+        <img class="resource-card-cover" src="../assets/images/album-placeholder.svg" alt="Placeholder NinConvert">
+        <div class="resource-card-body">
+          <span class="resource-badge" id="resources-card3-badge">Web - Tool</span>
+          <h3 class="resource-card-title" id="resources-card3-title">NinConvert</h3>
+          <p class="resource-card-author"><span id="resources-card3-by">Made by</span> <span class="resource-author-name">Jay and other</span></p>
+          <p class="resource-card-desc" id="resources-card3-desc">This will allow you to convert MP3, WAV and OGG to BRSTM, BCSTM, BFSTM, BWAV, BCWAV and BFWAV.</p>
+        </div>
+      </article>
+    </div>
+
+    <p class="resources-empty" id="resources-empty" hidden>Desole mais il y a rien qui correspond :(</p>
+
+    <section class="tool-placeholder" id="tool-placeholder" hidden>
+      <div class="tool-placeholder-barrier" aria-hidden="true"></div>
+      <p class="tool-placeholder-text">Desole mais cette partie la du site est pas encore fini :(</p>
+      <button class="filter-chip tool-placeholder-btn" type="button" id="tool-placeholder-close">Retour</button>
+    </section>
+
+    <footer>
+      <p>CTRL_J/Website</p>
+    </footer>
+  </main>
+
+  <script src="../assets/js/translations.js?v=20260219d"></script>
+  <script src="../assets/Musics/playlist.js?v=20260219b"></script>
+  <script src="../assets/js/music-player-component.js?v=20260219a"></script>
+  <script src="../assets/js/resources-filters.js?v=20260219e"></script>
+  <script src="../assets/js/site.js?v=20260219f"></script>
+</body>
+</html>

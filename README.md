@@ -14,9 +14,9 @@ Ce projet est actuellement en phase de construction.
 
 ## License
 
-- Frontend website: `MIT` (see `website/licenses/LICENSE`)
-- Planned backend/API for NinConvert: `GPL-3.0` (see `website/licenses/BACKEND_LICENSE.md`)
-- Third-party dependencies and notices: `website/licenses/THIRD_PARTY_NOTICES.md`
+- Frontend website: `MIT` (see `LICENSE`)
+- Planned backend/API for NinConvert: `GPL-3.0` (see `BACKEND_LICENSE.md`)
+- Third-party dependencies and notices: `THIRD_PARTY_NOTICES.md`
 
 ## Dev
 

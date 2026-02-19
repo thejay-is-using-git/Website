@@ -94,6 +94,9 @@
   let pendingAutoplayUrl = "";
   let musicFadeRaf = 0;
   let musicDesiredVolume = 1;
+  let shouldKeepMusicPlaying = false;
+  let pauseRecoveryTimer = 0;
+  let suppressPauseRecoveryUntil = 0;
 
   function getPageFromHref(href) {
     if (!href) {
@@ -437,6 +440,31 @@
     return clampVolume(musicDesiredVolume);
   }
 
+  function clearPlaybackRecovery() {
+    if (pauseRecoveryTimer) {
+      clearTimeout(pauseRecoveryTimer);
+      pauseRecoveryTimer = 0;
+    }
+  }
+
+  function schedulePlaybackRecovery(delayMs = 180) {
+    if (!musicAudio || !shouldKeepMusicPlaying) {
+      return;
+    }
+
+    clearPlaybackRecovery();
+    pauseRecoveryTimer = setTimeout(() => {
+      pauseRecoveryTimer = 0;
+      if (!musicAudio || !shouldKeepMusicPlaying || !musicAudio.paused) {
+        return;
+      }
+      const track = getCurrentTrack();
+      pendingAutoplay = true;
+      pendingAutoplayUrl = track ? (track.requestUrl || track.url) : "";
+      tryPendingAutoplay();
+    }, Math.max(0, Number(delayMs) || 0));
+  }
+
   function fadeMusicVolume(from, to, durationMs, onDone) {
     if (!musicAudio) {
       if (typeof onDone === "function") {
@@ -508,6 +536,8 @@
     if (canFadeIn) {
       fadeMusicVolume(0, targetVolume, musicFadeInMs);
     }
+    shouldKeepMusicPlaying = true;
+    clearPlaybackRecovery();
     updatePlayButtonLabel();
     return true;
   }
@@ -516,6 +546,11 @@
     if (!musicAudio || musicAudio.paused) {
       return;
     }
+
+    shouldKeepMusicPlaying = false;
+    pendingAutoplay = false;
+    pendingAutoplayUrl = "";
+    clearPlaybackRecovery();
 
     const targetVolume = getDesiredMusicVolume();
     const currentVolume = clampVolume(musicAudio.volume);
@@ -777,6 +812,7 @@
       }
 
       if (savedState.wasPlaying || shouldAutoStart) {
+        shouldKeepMusicPlaying = true;
         pendingAutoplay = true;
         pendingAutoplayUrl = playlist[currentTrackIndex].requestUrl || playlist[currentTrackIndex].url;
         if (musicAudio.readyState >= 2) {
@@ -914,6 +950,10 @@
 
     pendingAutoplay = autoplay;
     pendingAutoplayUrl = requestUrl;
+    if (autoplay) {
+      shouldKeepMusicPlaying = true;
+    }
+    suppressPauseRecoveryUntil = Date.now() + 900;
     musicAudio.load();
     if (nowPlayingSwapTimer) {
       clearTimeout(nowPlayingSwapTimer);
@@ -937,6 +977,7 @@
       if (musicAudio.readyState >= 2) {
         tryPendingAutoplay();
       } else {
+        schedulePlaybackRecovery(450);
         updatePlayButtonLabel();
       }
     }
@@ -1530,7 +1571,16 @@
       tryPendingAutoplay();
     });
     musicAudio.addEventListener("play", updatePlayButtonLabel);
-    musicAudio.addEventListener("pause", updatePlayButtonLabel);
+    musicAudio.addEventListener("pause", () => {
+      updatePlayButtonLabel();
+      if (!shouldKeepMusicPlaying || pendingAutoplay || musicAudio.ended) {
+        return;
+      }
+      if (Date.now() < suppressPauseRecoveryUntil) {
+        return;
+      }
+      schedulePlaybackRecovery(220);
+    });
     musicAudio.addEventListener("ended", () => {
       goToNextTrack(true);
       updatePlayButtonLabel();
@@ -1613,6 +1663,24 @@
 
   window.addEventListener("pagehide", saveMusicState);
   window.addEventListener("beforeunload", saveMusicState);
+  window.addEventListener("pageshow", () => {
+    if (!musicAudio || !shouldKeepMusicPlaying) {
+      return;
+    }
+    schedulePlaybackRecovery(120);
+  });
+  window.addEventListener("focus", () => {
+    if (!musicAudio || !shouldKeepMusicPlaying) {
+      return;
+    }
+    schedulePlaybackRecovery(120);
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden || !musicAudio || !shouldKeepMusicPlaying) {
+      return;
+    }
+    schedulePlaybackRecovery(120);
+  });
 
   if (langSelect) {
     langSelect.value = ["system", "fr", "en"].includes(savedLang) ? savedLang : "system";

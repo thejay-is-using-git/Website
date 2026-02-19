@@ -1207,6 +1207,102 @@
     musicQueueBtn.setAttribute("aria-expanded", "false");
   }
 
+  function getResourceCardTag(card) {
+    const explicitTag = (card && card.dataset && card.dataset.platform ? card.dataset.platform : "")
+      .toLowerCase()
+      .trim();
+    if (explicitTag === "wiiu" || explicitTag === "wii") {
+      return explicitTag;
+    }
+
+    const badge = card ? card.querySelector(".resource-badge") : null;
+    const label = (badge && badge.textContent ? badge.textContent : "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+    if (/\bwii\s*u\b/.test(label)) {
+      return "wiiu";
+    }
+    if (/\bwii\b/.test(label)) {
+      return "wii";
+    }
+    return "";
+  }
+
+  function initResourcesFilters() {
+    const filterButtons = Array.from(document.querySelectorAll(".resources-filters .filter-chip"));
+    const cards = Array.from(document.querySelectorAll(".resource-card-grid .resource-card"));
+    if (!filterButtons.length || !cards.length) {
+      return;
+    }
+
+    cards.forEach((card) => {
+      card.dataset.filterTag = getResourceCardTag(card);
+    });
+
+    function hideCardWithFade(card, durationMs) {
+      if (card.hidden) {
+        return;
+      }
+      if (card.__filterTimer) {
+        clearTimeout(card.__filterTimer);
+      }
+      card.classList.add("is-filter-hidden");
+      card.__filterTimer = setTimeout(() => {
+        card.hidden = true;
+        card.__filterTimer = null;
+      }, durationMs);
+    }
+
+    function showCardWithFade(card) {
+      if (card.__filterTimer) {
+        clearTimeout(card.__filterTimer);
+        card.__filterTimer = null;
+      }
+      if (!card.hidden) {
+        card.classList.remove("is-filter-hidden");
+        return;
+      }
+
+      card.hidden = false;
+      card.classList.add("is-filter-hidden");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          card.classList.remove("is-filter-hidden");
+        });
+      });
+    }
+
+    function applyFilter(filterKey) {
+      const selected = filterKey || "all";
+      const fadeDurationMs = 220;
+
+      filterButtons.forEach((btn) => {
+        const key = btn.dataset.filter || "all";
+        btn.classList.toggle("active", key === selected);
+      });
+
+      cards.forEach((card) => {
+        const cardTag = card.dataset.filterTag || "";
+        const shouldShow = selected === "all" || cardTag === selected;
+        if (shouldShow) {
+          showCardWithFade(card);
+        } else {
+          hideCardWithFade(card, fadeDurationMs);
+        }
+      });
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        applyFilter(button.dataset.filter || "all");
+      });
+    });
+
+    const defaultButton = filterButtons.find((btn) => btn.classList.contains("active")) || filterButtons[0];
+    applyFilter((defaultButton && defaultButton.dataset.filter) || "all");
+  }
+
   if (settingsBtn && settingsPanel && musicBtn && musicPanel) {
     settingsBtn.addEventListener("click", () => {
       const isOpen = settingsPanel.classList.contains("is-open");
@@ -1281,6 +1377,8 @@
   if (langSelect) {
     langSelect.addEventListener("change", () => applyLanguage(langSelect.value, true));
   }
+
+  initResourcesFilters();
 
   document.querySelectorAll(".menu a").forEach((link) => {
     link.addEventListener("click", (event) => {

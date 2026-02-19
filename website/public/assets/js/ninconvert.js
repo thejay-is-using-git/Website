@@ -23,10 +23,25 @@
   const downloadLink = document.getElementById("nin-download");
 
   const storageKey = "ninconvert-api-url";
+  const translations = window.SITE_TRANSLATIONS || {};
   let sourceObjectUrl = "";
   let sourceSampleRate = 48000;
   let loopPreviewEnabled = false;
   let audioContext = null;
+
+  function getCurrentTranslation() {
+    const rawChoice = localStorage.getItem("site-lang") || "system";
+    const choice = rawChoice === "system"
+      ? ((navigator.language || "fr").toLowerCase().startsWith("en") ? "en" : "fr")
+      : rawChoice;
+    return translations[choice] || translations.fr || {};
+  }
+
+  function tr(key, fallback) {
+    const t = getCurrentTranslation();
+    const value = t && typeof t[key] === "string" ? t[key] : "";
+    return value || fallback;
+  }
 
   const savedApi = localStorage.getItem(storageKey);
   if (savedApi && apiUrlInput) {
@@ -54,11 +69,16 @@
   }
 
   function setBusy(isBusy) {
+    const busy = Boolean(isBusy);
+    window.__ninconvertBusy = busy;
+
     if (!convertBtn) {
       return;
     }
-    convertBtn.disabled = isBusy;
-    convertBtn.textContent = isBusy ? "Converting..." : "Convert";
+    convertBtn.disabled = busy;
+    convertBtn.textContent = busy
+      ? tr("ninConverting", "Converting...")
+      : tr("ninConvertButton", "Convert");
   }
 
   function normalizeApiBase(url) {
@@ -100,7 +120,9 @@
     if (!loopPreviewBtn) {
       return;
     }
-    loopPreviewBtn.textContent = loopPreviewEnabled ? "Loop preview: ON" : "Loop preview: OFF";
+    loopPreviewBtn.textContent = loopPreviewEnabled
+      ? tr("ninLoopPreviewOn", "Loop preview: ON")
+      : tr("ninLoopPreviewOff", "Loop preview: OFF");
     loopPreviewBtn.classList.toggle("is-active", loopPreviewEnabled);
   }
 
@@ -119,7 +141,9 @@
       return;
     }
     if (sourcePlayBtn) {
-      sourcePlayBtn.textContent = sourceAudio.paused ? "Play" : "Pause";
+      sourcePlayBtn.textContent = sourceAudio.paused
+        ? tr("ninSourcePlay", "Play")
+        : tr("ninSourcePause", "Pause");
     }
     const duration = Number.isFinite(sourceAudio.duration) ? sourceAudio.duration : 0;
     const current = Number.isFinite(sourceAudio.currentTime) ? sourceAudio.currentTime : 0;
@@ -236,7 +260,7 @@
   if (sourcePlayBtn && sourceAudio) {
     sourcePlayBtn.addEventListener("click", async () => {
       if (!sourceAudio.src) {
-        setStatus("Choisis un fichier audio d'abord.", true);
+        setStatus(tr("ninStatusPickFileFirst", "Choisis un fichier audio d'abord."), true);
         return;
       }
       try {
@@ -314,19 +338,19 @@
 
     const file = fileInput && fileInput.files ? fileInput.files[0] : null;
     if (!file) {
-      setStatus("Choisis un fichier audio avant de convertir.", true);
+      setStatus(tr("ninStatusPickFileBeforeConvert", "Choisis un fichier audio avant de convertir."), true);
       return;
     }
 
     const format = (formatInput && formatInput.value ? formatInput.value : "").toLowerCase().trim();
     if (!format) {
-      setStatus("Choisis un format de sortie.", true);
+      setStatus(tr("ninStatusPickOutputFormat", "Choisis un format de sortie."), true);
       return;
     }
 
     const apiBase = normalizeApiBase(apiUrlInput ? apiUrlInput.value : "");
     if (!apiBase) {
-      setStatus("Ajoute ton URL API d'abord (backend NinConvert).", true);
+      setStatus(tr("ninStatusMissingApi", "Ajoute ton URL API d'abord (backend NinConvert)."), true);
       return;
     }
 
@@ -340,7 +364,7 @@
     formData.append("loopEnd", loopEndInput && loopEndInput.value ? loopEndInput.value : "0");
 
     setBusy(true);
-    setStatus("Conversion en cours...");
+    setStatus(tr("ninStatusConverting", "Conversion en cours..."));
 
     try {
       const response = await fetch(`${apiBase}/convert`, {
@@ -363,11 +387,23 @@
       downloadLink.href = objectUrl;
       downloadLink.download = outputName;
       downloadLink.hidden = false;
-      setStatus("Conversion terminee. Clique sur Download.");
+      setStatus(tr("ninStatusDone", "Conversion terminee. Clique sur Download."));
     } catch (error) {
-      setStatus(`Erreur conversion: ${error.message || "unknown error"}`, true);
+      setStatus(`${tr("ninStatusErrorPrefix", "Erreur conversion:")} ${error.message || tr("ninStatusUnknownError", "unknown error")}`, true);
     } finally {
       setBusy(false);
     }
   });
+
+  function refreshLocalizedUi() {
+    if (downloadLink) {
+      downloadLink.textContent = tr("ninDownload", "Download");
+    }
+    setBusy(Boolean(window.__ninconvertBusy));
+    setLoopPreviewButtonState();
+    updateCustomPlayerUi();
+  }
+
+  document.addEventListener("site:language-updated", refreshLocalizedUi);
+  refreshLocalizedUi();
 })();

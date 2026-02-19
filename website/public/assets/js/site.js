@@ -1228,6 +1228,9 @@
       ["#resources-filter-wiiu", t.resourcesFilterWiiU],
       ["#resources-filter-other", t.resourcesFilterOther],
       ["#resources-catalog-title", t.resourcesCatalogTitle],
+      ["#resources-empty", t.resourcesEmpty],
+      ["#tool-placeholder-text", t.toolPlaceholderText],
+      ["#tool-placeholder-close", t.toolPlaceholderClose],
       ["#resources-card1-badge", t.resourcesCard1Badge],
       ["#resources-card1-title", t.resourcesCard1Title],
       ["#resources-card1-by", t.resourcesCard1By],
@@ -1251,12 +1254,17 @@
       ["#nin-source-preview-label", t.ninSourcePreviewLabel],
       ["#nin-set-loop-start", t.ninSetLoopStart],
       ["#nin-set-loop-end", t.ninSetLoopEnd],
+      ["#nin-convert-btn", t.ninConvertButton],
+      ["#nin-download", t.ninDownload],
       ["#nin-loop-preview-btn", t.ninLoopPreviewOff],
       ["#nin-api-label", t.ninApiLabel],
       ["#nin-status", t.ninStatusIdle],
       ["#ninconvert-note", t.ninconvertNote],
       ["#nin-oss-title", t.ninOssTitle],
       ["#nin-oss-subtitle", t.ninOssSubtitle],
+      ["#nin-oss-used-now", t.ninOssUsedNow],
+      ["#nin-oss-ref-link", t.ninOssRefLink],
+      ["#nin-oss-needed-backend", t.ninOssNeededBackend],
       ["#resources-link-g", t.g],
       ["#resources-link-d", t.d],
       ["#resources-link-m", t.m],
@@ -1306,12 +1314,20 @@
     if (musicVolume && t.musicVolumeAria) {
       musicVolume.setAttribute("aria-label", t.musicVolumeAria);
     }
+    const resourcesSearch = document.querySelector("#resources-search");
+    if (resourcesSearch && t.resourcesSearchPlaceholder) {
+      resourcesSearch.setAttribute("placeholder", t.resourcesSearchPlaceholder);
+      resourcesSearch.setAttribute("aria-label", t.resourcesSearchPlaceholder);
+    }
 
     updatePlayButtonLabel();
     updateMuteButtonLabel();
 
     document.documentElement.lang = effectiveLang;
     localStorage.setItem("site-lang", langChoice);
+    document.dispatchEvent(new CustomEvent("site:language-updated", {
+      detail: { langChoice, effectiveLang, translation: t }
+    }));
   }
 
   function openSettingsPanel() {

@@ -94,6 +94,8 @@
   const brokenTrackUrls = new Set();
   const musicFadeInMs = 520;
   const musicFadeOutMs = 380;
+  const minimumBufferedAheadSeconds = 0.2;
+  const maxBufferWaitMs = 2400;
   let currentTrackIndex = 0;
   let pendingAutoplay = false;
   let pendingAutoplayUrl = "";
@@ -461,6 +463,115 @@
     }
   }
 
+  function getBufferedAheadSeconds(audio, timePoint) {
+    if (!audio || !audio.buffered) {
+      return 0;
+    }
+
+    const seekPoint = Math.max(0, Number(timePoint) || 0);
+    for (let i = 0; i < audio.buffered.length; i += 1) {
+      const start = audio.buffered.start(i);
+      const end = audio.buffered.end(i);
+      if (seekPoint < start) {
+        return Math.max(0, end - start);
+      }
+      if (seekPoint >= start && seekPoint <= end) {
+        return Math.max(0, end - seekPoint);
+      }
+    }
+
+    return 0;
+  }
+
+  function hasSufficientBufferedPlayback(audio) {
+    if (!audio) {
+      return false;
+    }
+    if (audio.readyState >= 3) {
+      return true;
+    }
+    if (audio.readyState < 2) {
+      return false;
+    }
+
+    const bufferedAhead = getBufferedAheadSeconds(audio, audio.currentTime);
+    if (bufferedAhead >= minimumBufferedAheadSeconds) {
+      return true;
+    }
+
+    // On startup (time=0), accept small first chunk if already available.
+    if (audio.currentTime <= 0.05 && getBufferedAheadSeconds(audio, 0) >= 0.05) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function waitForBufferedPlayback(timeoutMs = maxBufferWaitMs) {
+    if (!musicAudio) {
+      return Promise.resolve(false);
+    }
+    if (hasSufficientBufferedPlayback(musicAudio)) {
+      return Promise.resolve(true);
+    }
+
+    if (musicAudio.networkState === HTMLMediaElement.NETWORK_EMPTY) {
+      try {
+        musicAudio.load();
+      } catch (_) {
+        // ignore and rely on events below
+      }
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+      let timer = 0;
+
+      const cleanup = () => {
+        musicAudio.removeEventListener("canplay", onReadyEvent);
+        musicAudio.removeEventListener("canplaythrough", onReadyEvent);
+        musicAudio.removeEventListener("loadeddata", onReadyEvent);
+        musicAudio.removeEventListener("progress", onReadyEvent);
+        musicAudio.removeEventListener("error", onError);
+        if (timer) {
+          clearTimeout(timer);
+          timer = 0;
+        }
+      };
+
+      const settle = (value) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanup();
+        resolve(value);
+      };
+
+      const onReadyEvent = () => {
+        if (hasSufficientBufferedPlayback(musicAudio)) {
+          settle(true);
+        }
+      };
+
+      const onError = () => {
+        settle(false);
+      };
+
+      timer = setTimeout(() => {
+        settle(hasSufficientBufferedPlayback(musicAudio));
+      }, Math.max(120, Number(timeoutMs) || maxBufferWaitMs));
+
+      musicAudio.addEventListener("canplay", onReadyEvent);
+      musicAudio.addEventListener("canplaythrough", onReadyEvent);
+      musicAudio.addEventListener("loadeddata", onReadyEvent);
+      musicAudio.addEventListener("progress", onReadyEvent);
+      musicAudio.addEventListener("error", onError, { once: true });
+
+      onReadyEvent();
+    });
+  }
+
   function schedulePendingAutoplayRetry(delayMs = 400) {
     if (!pendingAutoplay || !musicAudio) {
       return;
@@ -542,6 +653,11 @@
 
   async function playMusicWithFadeIn() {
     if (!musicAudio) {
+      return false;
+    }
+
+    const isBufferedReady = await waitForBufferedPlayback();
+    if (!isBufferedReady) {
       return false;
     }
 
@@ -1747,7 +1863,14 @@
   if (musicPlayBtn && musicAudio) {
     musicPlayBtn.addEventListener("click", async () => {
       if (musicAudio.paused) {
-        await playMusicWithFadeIn();
+        const played = await playMusicWithFadeIn();
+        if (!played) {
+          const track = getCurrentTrack();
+          pendingAutoplay = true;
+          pendingAutoplayUrl = track ? (track.requestUrl || track.url) : "";
+          shouldKeepMusicPlaying = true;
+          schedulePendingAutoplayRetry(220);
+        }
       } else {
         pauseMusicWithFadeOut();
       }

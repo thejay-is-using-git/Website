@@ -10,28 +10,16 @@
 
   const fallbackTracks = [
     {
-      file: "Mr. Blue Sky.mp3",
-      title: "Mr. Blue Sky",
-      artist: "Electric Light Orchestra",
-      cover: `${basePath}covers/mr-blue-sky.jpg`
-    },
-    {
       file: "Kubbi _ Overworld.mp3",
       title: "Kubbi - Overworld",
       artist: "Kubbi",
-      cover: placeholderCover
+      cover: `${basePath}covers/Kubbi.jpg`
     },
     {
       file: "PlasticSixwall.mp3",
       title: "≧◡≦",
       artist: "PlasticSixwall",
-      cover: placeholderCover
-    },
-    {
-      file: "EEYUH 2_audio only.mp3",
-      title: "EEYUH 2",
-      artist: "HR",
-      cover: `${basePath}covers/FLUXXKLUB!.jpg`
+      cover: `${basePath}covers/plasticsixwall.jpg`
     },
     {
       file: "Sherbet Lobby - bxnji.mp3",
@@ -40,7 +28,19 @@
       cover: `${basePath}covers/yume-nikki-madotsuki.gif`
     },
     {
-      file: "FALL! (Slowed)_audio only.mp3",
+      file: "nico's nextbots ost - kensuke.mp3",
+      title: "Kensuke",
+      artist: "Nicopatty",
+      cover: `${basePath}covers/nico's - kensuke.gif`
+    },
+        {
+      file: "猫叉Master - Back to chronos (Slowed).mp3",
+      title: "Back to chronos (Slowed)",
+      artist: "猫叉Master",
+      cover: `${basePath}covers/Back to chronos.jpg`
+    },
+    {
+      file: "FALL! (Slowed).mp3",
       title: "FALL ! (SLowed)",
       artist: "6IXXTY",
       cover: `${basePath}covers/FALL! (Slowed).jpg`

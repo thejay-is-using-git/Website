@@ -1,34 +1,34 @@
 ﻿{
   "tracks": [
     {
-      "file": "Mr. Blue Sky.mp3",
-      "title": "Mr. Blue Sky",
-      "artist": "Electric Light Orchestra",
-      "cover": "assets/Musics/covers/mr-blue-sky.jpg"
-    },
-    {
       "file": "Kubbi _ Overworld.mp3",
       "title": "Kubbi - Overworld",
       "artist": "Kubbi",
-      "cover": "assets/images/album-placeholder.svg"
+      "cover": "assets/images/Kubbi.jpg"
     },
     {
       "file": "PlasticSixwall.mp3",
       "title": "PlasticSixwall",
       "artist": "CTRL_J",
-      "cover": "assets/images/album-placeholder.svg"
-    },
-    {
-      "file": "EEYUH 2_audio only.mp3",
-      "title": "EEYUH 2",
-      "artist": "HR",
-      "cover": "assets/Musics/covers/FLUXXKLUB!.jpg"
+      "cover": "assets/images/plasticsixwall.jpg"
     },
     {
       "file": "Sherbet Lobby - bxnji.mp3",
       "title": "Sherbet",
       "artist": "Nicopatty - bxnji",
       "cover": "assets/Musics/covers/yume-nikki-madotsuki.gif"
+    },
+        {
+      "file": "nico's nextbots ost - kensuke.mp3",
+      "title": "Kensuke",
+      "artist": "Nicopatty",
+      "cover": "assets/Musics/covers/nico's - kensuke.gif"
+    },
+       {
+      "file": "猫叉Master - Back to chronos (Slowed).mp3",
+      "title": "Back to chronos (Slowed)",
+      "artist": "猫叉Master",
+      "cover": "assets/Musics/covers/Back to chronos.jpg"
     },
     {
       "file": "FALL! (Slowed)_audio only.mp3",

@@ -18,6 +18,7 @@ export default defineConfig(({ command }) => ({
       input: {
         main: resolve(rootDir, "../src/index.html"),
         resources: resolve(rootDir, "../src/resources/index.html"),
+        resourcesNinconvert: resolve(rootDir, "../src/resources/ninconvert/index.html"),
         credit: resolve(rootDir, "../src/credit/index.html"),
         ninconvert: resolve(rootDir, "../src/ninconvert/index.html"),
         placeholder: resolve(rootDir, "../src/placeholder/index.html")

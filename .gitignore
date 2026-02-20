@@ -2,6 +2,8 @@ nodejs/
 dist/
 start-local*.bat
 start-ninconvert-online.bat
+start-ninconvert-auto-sync.bat
+create-ninconvert-desktop-shortcut.bat
 backend/node_modules/
 backend/tmp/
 backend/.env

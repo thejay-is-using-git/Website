@@ -21,20 +21,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: nodejs/package-lock.json
-
-      - name: Install deps
-        working-directory: nodejs
-        run: npm ci
-
-      - name: Build site
-        working-directory: nodejs
-        run: npm run build
+      - name: Build static site (src + public)
+        run: |
+          rm -rf site
+          mkdir -p site
+          rsync -a src/ site/
+          rsync -a public/ site/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -42,7 +34,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: site
 
   deploy:
     needs: build

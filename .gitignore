@@ -1,9 +1,7 @@
-nodejs/*
-!nodejs/package.json
-!nodejs/package-lock.json
-!nodejs/vite.config.js
+nodejs/
 dist/
 start-local*.bat
+start-ninconvert-online.bat
 backend/node_modules/
 backend/tmp/
 backend/.env

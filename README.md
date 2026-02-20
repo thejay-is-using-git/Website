@@ -7,8 +7,6 @@ Ce projet est actuellement en phase de construction.
 
 - `src/`: pages HTML source (`index`, `resources`, `credit`, `ninconvert`, `placeholder`)
 - `public/`: assets statiques (`assets/...`)
-- `dist/`: build de production (genere par Vite)
-- `nodejs/`: environnement local Node/Vite (local uniquement, ignore pour GitHub)
 - `.github/workflows/deploy-pages.yml`: deploiement GitHub Pages automatique via Actions
 
 ## License

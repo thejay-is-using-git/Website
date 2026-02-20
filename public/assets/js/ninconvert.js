@@ -48,6 +48,8 @@
   let loopStartMarkerSet = false;
   let loopEndMarkerSet = false;
   let draggingLoopMarker = "";
+  let isApiHealthy = false;
+  let healthCheckTimer = 0;
   const seekThumbWidthPx = 4;
   const allowedInputExtensions = new Set([
     "wav",
@@ -158,14 +160,20 @@
 
     const apiBase = normalizeApiBase(apiUrlInput.value || "");
     if (!apiBase) {
+      isApiHealthy = false;
       setBackendOfflineStatus();
+      updateActionAvailability();
       return;
     }
 
     const online = await checkApiHealth(apiBase);
+    isApiHealthy = online;
     if (!online) {
       setBackendOfflineStatus();
+    } else {
+      setStatus(tr("ninStatusIdle", "En attente d'un fichier."));
     }
+    updateActionAvailability();
   }
 
   function setStatus(message, isError = false) {
@@ -233,6 +241,33 @@
     convertBtn.textContent = busy
       ? tr("ninConverting", "Converting...")
       : tr("ninConvertButton", "Convert");
+  }
+
+  function hasSelectedFile() {
+    const fileFromInput = fileInput && fileInput.files ? fileInput.files[0] : null;
+    return Boolean(selectedInputFile || fileFromInput);
+  }
+
+  function setDownloadEnabled(enabled) {
+    if (!downloadLink) {
+      return;
+    }
+    const on = Boolean(enabled);
+    downloadLink.classList.toggle("is-disabled", !on);
+    downloadLink.setAttribute("aria-disabled", on ? "false" : "true");
+    if (!on) {
+      downloadLink.removeAttribute("href");
+      downloadLink.removeAttribute("download");
+    }
+  }
+
+  function updateActionAvailability() {
+    const apiBase = normalizeApiBase(apiUrlInput ? apiUrlInput.value : "");
+    const canConvert = hasSelectedFile() && Boolean(apiBase) && isApiHealthy && !Boolean(window.__ninconvertBusy);
+    if (convertBtn) {
+      convertBtn.disabled = !canConvert;
+      convertBtn.classList.toggle("is-disabled", !canConvert);
+    }
   }
 
   function normalizeApiBase(url) {
@@ -634,6 +669,7 @@
       sourceAudio.load();
       updatePreviewMeta();
       updateCustomPlayerUi();
+      updateActionAvailability();
       return;
     }
 
@@ -641,6 +677,7 @@
       selectedInputFile = null;
       setDropzoneFileName("");
       setStatus(tr("ninStatusUnsupportedInput", "Format non supporte. Utilise WAV, MP3 ou OGG."), true);
+      updateActionAvailability();
       return;
     }
     selectedInputFile = file;
@@ -659,6 +696,7 @@
     updateCustomPlayerUi();
     updateLoopMarkers();
     setStatus(tr("ninStatusIdle", "En attente d'un fichier."));
+    updateActionAvailability();
   }
 
   if (fileInput && sourceAudio) {
@@ -872,13 +910,41 @@
   updatePreviewMeta();
   updateCustomPlayerUi();
   setDropzoneFileName("");
+  setDownloadEnabled(false);
+  updateActionAvailability();
   resetProgress();
   void syncApiFromConfigAndHealth();
 
+  if (apiUrlInput) {
+    apiUrlInput.addEventListener("input", () => {
+      isApiHealthy = false;
+      updateActionAvailability();
+      if (healthCheckTimer) {
+        window.clearTimeout(healthCheckTimer);
+      }
+      healthCheckTimer = window.setTimeout(async () => {
+        const apiBase = normalizeApiBase(apiUrlInput.value || "");
+        if (!apiBase) {
+          isApiHealthy = false;
+          setBackendOfflineStatus();
+          updateActionAvailability();
+          return;
+        }
+        const online = await checkApiHealth(apiBase);
+        isApiHealthy = online;
+        if (!online) {
+          setBackendOfflineStatus();
+        } else {
+          setStatus(tr("ninStatusIdle", "En attente d'un fichier."));
+        }
+        updateActionAvailability();
+      }, 380);
+    });
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    downloadLink.hidden = true;
-    downloadLink.removeAttribute("href");
+    setDownloadEnabled(false);
 
     const fileFromInput = fileInput && fileInput.files ? fileInput.files[0] : null;
     const file = selectedInputFile || fileFromInput || null;
@@ -901,6 +967,8 @@
 
     localStorage.setItem(storageKey, apiBase);
     const backendOnline = await checkApiHealth(apiBase);
+    isApiHealthy = backendOnline;
+    updateActionAvailability();
     if (!backendOnline) {
       setBackendOfflineStatus();
       return;
@@ -965,7 +1033,7 @@
 
       downloadLink.href = objectUrl;
       downloadLink.download = outputName;
-      downloadLink.hidden = false;
+      setDownloadEnabled(true);
       setProgress(100, tr("ninProgressDone", "Conversion terminee"));
       const wavChannels = Number.parseInt(String(result.wavChannels || ""), 10);
       const wavSampleRate = Number.parseInt(String(result.wavSampleRate || ""), 10);
@@ -997,6 +1065,7 @@
       setStatus(`${tr("ninStatusErrorPrefix", "Erreur conversion:")} ${error.message || tr("ninStatusUnknownError", "unknown error")}`, true);
     } finally {
       setBusy(false);
+      updateActionAvailability();
     }
   });
 

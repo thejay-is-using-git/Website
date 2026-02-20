@@ -22,7 +22,7 @@
   <link rel="icon" type="image/png" href="../../assets/images/favicon.png?v=2">
   <link rel="stylesheet" href="../../assets/css/base.css?v=20260219b">
   <link rel="stylesheet" href="../../assets/css/starnight.css?v=20260218d">
-  <link rel="stylesheet" href="../../assets/css/ninconvert.css?v=20260220b">
+  <link rel="stylesheet" href="../../assets/css/ninconvert.css?v=20260220c">
   <script src="../../assets/js/embed-fallback.js?v=20260218d"></script>
 </head>
 <body data-page="ninconvert" data-asset-root="../../assets/">
@@ -85,7 +85,7 @@
       <form class="nin-form card" id="ninconvert-form">
         <div class="nin-row">
           <label for="nin-file" id="nin-file-label">Audio source</label>
-          <input class="nin-file-input" id="nin-file" type="file" accept=".wav,.mp3,.ogg" required>
+          <input class="nin-file-input" id="nin-file" type="file" accept=".wav,.mp3,.ogg">
           <div class="nin-dropzone" id="nin-dropzone" role="button" tabindex="0" aria-controls="nin-file" aria-label="Drop audio file here or click to select">
             <p class="nin-dropzone-title" id="nin-dropzone-title">Drag &amp; drop ton fichier ici</p>
             <p class="nin-dropzone-sub" id="nin-dropzone-sub">ou clique pour choisir (WAV, MP3, OGG)</p>
@@ -169,10 +169,16 @@
           </div>
         </div>
 
-        <div class="nin-row">
-          <label for="nin-api-url" id="nin-api-label">API endpoint</label>
-          <input id="nin-api-url" type="url" placeholder="https://your-ninconvert-api.example.com" autocomplete="off">
-        </div>
+        <details class="nin-advanced" id="nin-advanced">
+          <summary id="nin-advanced-summary">Parametres avances</summary>
+          <div class="nin-advanced-body">
+            <div class="nin-row">
+              <label for="nin-api-url" id="nin-api-label">API endpoint</label>
+              <input id="nin-api-url" type="url" placeholder="https://your-ninconvert-api.example.com" autocomplete="off">
+              <p class="nin-note nin-api-note" id="nin-api-note">Conseil: ne touche pas si tu sais pas a quoi ca sert.</p>
+            </div>
+          </div>
+        </details>
 
         <div class="nin-actions">
           <button class="filter-chip active" id="nin-convert-btn" type="submit">Convert</button>
@@ -189,7 +195,7 @@
         </div>
 
         <div class="nin-download-wrap">
-          <a id="nin-download" class="nin-download" href="#" hidden>Download</a>
+          <a id="nin-download" class="nin-download is-disabled" href="#" aria-disabled="true">Download</a>
         </div>
       </form>
 
@@ -264,12 +270,12 @@ Loop transmis via:
     </footer>
   </main>
 
-  <script src="../../assets/js/translations.js?v=20260220b"></script>
+  <script src="../../assets/js/translations.js?v=20260220c"></script>
   <script src="../../assets/Musics/playlist.js?v=20260220c"></script>
   <script src="../../assets/js/music-player-component.js?v=20260220b"></script>
   <script src="../../assets/js/resources-filters.js?v=20260219f"></script>
-  <script src="../../assets/js/site.js?v=20260220c"></script>
-  <script src="../../assets/js/ninconvert.js?v=20260220d"></script>
+  <script src="../../assets/js/site.js?v=20260220d"></script>
+  <script src="../../assets/js/ninconvert.js?v=20260220e"></script>
 </body>
 </html>
 

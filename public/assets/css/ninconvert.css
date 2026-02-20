@@ -279,6 +279,40 @@
   gap: 10px;
 }
 
+.nin-advanced {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.nin-advanced summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 12px;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.nin-advanced summary::-webkit-details-marker {
+  display: none;
+}
+
+.nin-advanced summary:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.nin-advanced-body {
+  border-top: 1px solid var(--line);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.nin-api-note {
+  font-size: 0.82rem;
+}
+
 .nin-progress-wrap {
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -361,6 +395,7 @@
 #nin-convert-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  filter: grayscale(0.18);
 }
 
 .nin-download {
@@ -380,6 +415,14 @@
 .nin-download:hover {
   text-decoration: none;
   filter: brightness(1.06);
+}
+
+.nin-download.is-disabled,
+.nin-download[aria-disabled="true"] {
+  opacity: 0.55;
+  pointer-events: none;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
 }
 
 .nin-download-wrap {

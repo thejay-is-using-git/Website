@@ -64,14 +64,16 @@
     ressources: "Resources",
     credit: "Credit",
     ninconvert: "Resources/NinConvert",
-    placeholder: "Resources/Placeholder"
+    placeholder: "Resources/Placeholder",
+    legal: "Legal"
   };
   const tabTitleByPage = {
     information: "Home",
     ressources: "Resources",
     credit: "Credit",
     ninconvert: "Resources/NinConvert",
-    placeholder: "Resources/Placeholder"
+    placeholder: "Resources/Placeholder",
+    legal: "Legal"
   };
   const pathToPage = {
     "index.html": "information",
@@ -82,7 +84,9 @@
     "ninconvert": "ninconvert",
     "ninconvert.html": "ninconvert",
     "placeholder": "placeholder",
-    "placeholder.html": "placeholder"
+    "placeholder.html": "placeholder",
+    "legal": "legal",
+    "legal.html": "legal"
   };
 
   const defaultCoverSrc = musicCover ? musicCover.src : fallbackCoverSrc;
@@ -93,6 +97,8 @@
   let currentTrackIndex = 0;
   let pendingAutoplay = false;
   let pendingAutoplayUrl = "";
+  let pendingAutoplayRetryTimer = 0;
+  let pendingAutoplayRetryCount = 0;
   let musicFadeRaf = 0;
   let musicDesiredVolume = 1;
   let shouldKeepMusicPlaying = false;
@@ -448,6 +454,24 @@
     }
   }
 
+  function clearPendingAutoplayRetry() {
+    if (pendingAutoplayRetryTimer) {
+      clearTimeout(pendingAutoplayRetryTimer);
+      pendingAutoplayRetryTimer = 0;
+    }
+  }
+
+  function schedulePendingAutoplayRetry(delayMs = 400) {
+    if (!pendingAutoplay || !musicAudio) {
+      return;
+    }
+    clearPendingAutoplayRetry();
+    pendingAutoplayRetryTimer = setTimeout(() => {
+      pendingAutoplayRetryTimer = 0;
+      tryPendingAutoplay();
+    }, Math.max(120, Number(delayMs) || 400));
+  }
+
   function schedulePlaybackRecovery(delayMs = 180) {
     if (!musicAudio || !shouldKeepMusicPlaying) {
       return;
@@ -551,6 +575,8 @@
     shouldKeepMusicPlaying = false;
     pendingAutoplay = false;
     pendingAutoplayUrl = "";
+    pendingAutoplayRetryCount = 0;
+    clearPendingAutoplayRetry();
     clearPlaybackRecovery();
 
     const targetVolume = getDesiredMusicVolume();
@@ -894,11 +920,25 @@
     if (!musicAudio || !pendingAutoplay) {
       return;
     }
+    if (musicAudio.readyState < 2) {
+      schedulePendingAutoplayRetry(380);
+      return;
+    }
+    if (pendingAutoplayRetryCount > 18) {
+      pendingAutoplay = false;
+      pendingAutoplayUrl = "";
+      pendingAutoplayRetryCount = 0;
+      clearPendingAutoplayRetry();
+      return;
+    }
+    pendingAutoplayRetryCount += 1;
 
     playMusicWithFadeIn().then((played) => {
       if (played) {
         pendingAutoplay = false;
         pendingAutoplayUrl = "";
+        pendingAutoplayRetryCount = 0;
+        clearPendingAutoplayRetry();
         updatePlayButtonLabel();
         return;
       }
@@ -907,10 +947,13 @@
       playMusicWithFadeIn().then((playedMuted) => {
         if (!playedMuted) {
           musicAudio.muted = wasMuted;
+          schedulePendingAutoplayRetry(420);
           return;
         }
         pendingAutoplay = false;
         pendingAutoplayUrl = "";
+        pendingAutoplayRetryCount = 0;
+        clearPendingAutoplayRetry();
         if (!wasMuted) {
           setTimeout(() => {
             if (!musicAudio || musicAudio.paused) {
@@ -929,6 +972,8 @@
         }
         updatePlayButtonLabel();
       });
+    }).catch(() => {
+      schedulePendingAutoplayRetry(500);
     });
   }
 
@@ -955,6 +1000,8 @@
 
     pendingAutoplay = autoplay;
     pendingAutoplayUrl = requestUrl;
+    pendingAutoplayRetryCount = 0;
+    clearPendingAutoplayRetry();
     if (autoplay) {
       shouldKeepMusicPlaying = true;
     }
@@ -1324,9 +1371,11 @@
       ["#resources-card3-title", t.resourcesCard3Title],
       ["#resources-card3-by", t.resourcesCard3By],
       ["#resources-card3-desc", t.resourcesCard3Desc],
+      ["#resources-terms-btn", t.siteTermsButton],
       ["#ninconvert-title", t.ninconvertTitle],
       ["#ninconvert-subtitle", t.ninconvertSubtitle],
       ["#ninconvert-meta", t.ninconvertMeta],
+      ["#nin-terms-btn", t.siteTermsButton],
       ["#nin-file-label", t.ninFileLabel],
       ["#nin-dropzone-title", t.ninDropzoneTitle],
       ["#nin-dropzone-sub", t.ninDropzoneSub],
@@ -1355,6 +1404,18 @@
       ["#nin-oss-used-now", t.ninOssUsedNow],
       ["#nin-oss-ref-link", t.ninOssRefLink],
       ["#nin-oss-needed-backend", t.ninOssNeededBackend],
+      ["#legal-title", t.legalTitle],
+      ["#legal-subtitle", t.legalSubtitle],
+      ["#legal-intro", t.legalIntro],
+      ["#legal-data-title", t.legalDataTitle],
+      ["#legal-data-text", t.legalDataText],
+      ["#legal-processing-title", t.legalProcessingTitle],
+      ["#legal-processing-text", t.legalProcessingText],
+      ["#legal-retention-title", t.legalRetentionTitle],
+      ["#legal-retention-text", t.legalRetentionText],
+      ["#legal-contact-title", t.legalContactTitle],
+      ["#legal-contact-text", t.legalContactText],
+      ["#site-terms-link", t.siteTermsButton],
       ["#resources-link-g", t.g],
       ["#resources-link-d", t.d],
       ["#resources-link-m", t.m],
@@ -1628,6 +1689,7 @@
       tryPendingAutoplay();
     });
     musicAudio.addEventListener("canplay", tryPendingAutoplay);
+    musicAudio.addEventListener("canplaythrough", tryPendingAutoplay);
     musicAudio.addEventListener("durationchange", syncMusicUi);
     musicAudio.addEventListener("timeupdate", syncMusicUi);
     musicAudio.addEventListener("loadeddata", () => {
@@ -1659,6 +1721,16 @@
       }
       goToNextPlayableTrack(true);
       syncMusicUi();
+    });
+    musicAudio.addEventListener("waiting", () => {
+      if (pendingAutoplay || shouldKeepMusicPlaying) {
+        schedulePendingAutoplayRetry(280);
+      }
+    });
+    musicAudio.addEventListener("stalled", () => {
+      if (pendingAutoplay || shouldKeepMusicPlaying) {
+        schedulePendingAutoplayRetry(500);
+      }
     });
   }
 

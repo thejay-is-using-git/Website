@@ -9,6 +9,17 @@
   font-weight: 700;
 }
 
+.nin-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nin-terms-btn {
+  display: inline-flex;
+  text-decoration: none;
+}
+
 .nin-form {
   display: grid;
   gap: 12px;

@@ -1,0 +1,14 @@
+.legal-main {
+  display: grid;
+  gap: 12px;
+}
+
+.legal-card h2 {
+  margin: 0 0 6px;
+  font-size: 1.06rem;
+}
+
+.legal-card p {
+  margin: 0;
+  color: var(--text);
+}

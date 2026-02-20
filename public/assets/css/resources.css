@@ -41,6 +41,15 @@
   font-weight: 700;
 }
 
+.resources-legal-link-wrap {
+  margin: 10px 0 0;
+}
+
+.resources-terms-btn {
+  display: inline-flex;
+  text-decoration: none;
+}
+
 .resources-catalog {
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 18px;

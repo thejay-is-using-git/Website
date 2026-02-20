@@ -13,7 +13,7 @@
       file: "Kubbi _ Overworld.mp3",
       title: "Kubbi - Overworld",
       artist: "Kubbi",
-      cover: `${basePath}covers/Kubbi.jpg`
+      cover: `${basePath}covers/kubbi-overworld.jpg`
     },
     {
       file: "PlasticSixwall.mp3",

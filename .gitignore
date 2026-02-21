@@ -6,3 +6,4 @@ backend/tmp/
 backend/.env
 _test_*.bat
 *.bat
+.cursor/

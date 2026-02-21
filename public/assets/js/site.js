@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const settingsBtn = document.getElementById("settings-btn");
   const settingsPanel = document.getElementById("settings-panel");
   const animatedSections = Array.from(document.querySelectorAll(".dev-banner, main.page"));
@@ -634,9 +634,16 @@
         stopMusicVolumeFade();
         return;
       }
-      const progress = Math.min(1, (now - startTime) / duration);
+      const progress = Math.max(0, Math.min(1, (now - startTime) / duration));
       const eased = 1 - ((1 - progress) * (1 - progress) * (1 - progress));
-      musicAudio.volume = startVolume + (targetVolume - startVolume) * eased;
+      const computedVol = startVolume + (targetVolume - startVolume) * eased;
+      const clampedVol = Math.max(0, Math.min(1, computedVol));
+      // #region agent log
+      if (progress < 0 || computedVol < 0 || computedVol > 1) {
+        fetch('http://127.0.0.1:7715/ingest/8b0133d7-b244-45f4-a137-c7e436c2b139',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'217692'},body:JSON.stringify({sessionId:'217692',location:'site.js:fadeMusicVolume.step',message:'volume step out of range',data:{progress,startVolume,targetVolume,eased,computedVol,clampedVol},timestamp:Date.now(),hypothesisId:'H-vol-A'})}).catch(()=>{});
+      }
+      // #endregion
+      musicAudio.volume = clampedVol;
       if (progress >= 1) {
         musicFadeRaf = 0;
         musicAudio.volume = targetVolume;
@@ -771,35 +778,16 @@
     if (!img) {
       return;
     }
-
-    const queue = [];
-    if (track && track.cover) {
-      queue.push(track.cover);
+    const coverSrc = track && track.cover ? resolveAssetPath(track.cover.trim()) : "";
+    if (coverSrc) {
+      img.src = coverSrc;
+      img.onerror = () => {
+        img.onerror = null;
+        img.src = fallbackCoverSrc;
+      };
+    } else {
+      img.src = defaultCoverSrc;
     }
-    if (track && Array.isArray(track.coverCandidates)) {
-      queue.push(...track.coverCandidates);
-    }
-    queue.push(defaultCoverSrc);
-
-    const uniqueQueue = [...new Set(queue.filter(Boolean))];
-    let cursor = 0;
-
-    function setNext() {
-      const nextSrc = uniqueQueue[cursor] || fallbackCoverSrc;
-      cursor += 1;
-      img.src = nextSrc;
-    }
-
-    img.onerror = () => {
-      if (cursor < uniqueQueue.length) {
-        setNext();
-        return;
-      }
-      img.onerror = null;
-      img.src = fallbackCoverSrc;
-    };
-
-    setNext();
   }
 
   async function detectTracksFromDirectory() {

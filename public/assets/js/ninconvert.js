@@ -302,21 +302,29 @@
         reject(new Error("Network error"));
       };
 
+      const safeGetHeader = (name) => {
+        try {
+          return xhr.getResponseHeader(name) || "";
+        } catch (_) {
+          return "";
+        }
+      };
+
       xhr.onload = async () => {
         const status = xhr.status;
         const responseBlob = xhr.response instanceof Blob ? xhr.response : new Blob([]);
-        const contentDisposition = xhr.getResponseHeader("content-disposition") || "";
+        const contentDisposition = safeGetHeader("content-disposition");
 
         if (status >= 200 && status < 300) {
           resolve({
             blob: responseBlob,
             contentDisposition,
-            wavChannels: xhr.getResponseHeader("x-ninconvert-wav-channels") || "",
-            wavSampleRate: xhr.getResponseHeader("x-ninconvert-wav-sample-rate") || "",
-            loopMode: xhr.getResponseHeader("x-ninconvert-loop-mode") || "",
-            encoderLoopArgs: xhr.getResponseHeader("x-ninconvert-encoder-loop-args") || "",
-            waveLoopEndMode: xhr.getResponseHeader("x-ninconvert-wave-loop-end-mode") || "",
-            loopEndMode: xhr.getResponseHeader("x-ninconvert-loop-end-mode") || ""
+            wavChannels: safeGetHeader("x-ninconvert-wav-channels"),
+            wavSampleRate: safeGetHeader("x-ninconvert-wav-sample-rate"),
+            loopMode: safeGetHeader("x-ninconvert-loop-mode"),
+            encoderLoopArgs: safeGetHeader("x-ninconvert-encoder-loop-args"),
+            waveLoopEndMode: safeGetHeader("x-ninconvert-wave-loop-end-mode"),
+            loopEndMode: safeGetHeader("x-ninconvert-loop-end-mode")
           });
           return;
         }

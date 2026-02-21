@@ -852,33 +852,13 @@
       playlistMeta = playlistJsonMeta;
     }
 
-    const detectedTracks = await detectTracksFromDirectory();
-
-    if (detectedTracks.length) {
-      // Build playlist from real files found in assets/Musics.
-      const metaSource = playlistJsonMeta.length ? playlistJsonMeta : playlistMeta;
-      const metaByFile = new Map(
-        metaSource
-          .map((entry, idx) => normalizeTrack(entry, idx))
-          .filter(Boolean)
-          .map((entry) => [getBasename(entry.url).toLowerCase(), entry])
-      );
-
-      rawTracks = detectedTracks.map((url, idx) => {
-        const base = getBasename(url).toLowerCase();
-        const meta = metaByFile.get(base);
-        return meta
-          ? {
-              file: url,
-              title: meta.title,
-              artist: meta.artist,
-              cover: meta.cover
-            }
-          : url;
-      });
-    } else if (playlistJsonMeta.length || playlistMeta.length) {
-      // Fallback when directory listing is unavailable.
+    if (playlistJsonMeta.length || playlistMeta.length) {
       rawTracks = playlistJsonMeta.length ? playlistJsonMeta : playlistMeta;
+    } else {
+      const detectedTracks = await detectTracksFromDirectory();
+      if (detectedTracks.length) {
+        rawTracks = detectedTracks;
+      }
     }
 
     if (!rawTracks.length && defaultTrack) {
